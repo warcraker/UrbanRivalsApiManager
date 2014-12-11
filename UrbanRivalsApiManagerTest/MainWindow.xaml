@@ -1,0 +1,144 @@
+﻿<Window x:Class="UrbanRivalsApiManager.Test.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ApiManager Test" Height="500" Width="700" Icon="Resources/pillz_vertical.png">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style x:Key="UpperMargin" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="Margin" Value="0,5,0,0" />
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="5,0,0,0" />
+            <Setter Property="IsReadOnly" Value="True" />
+        </Style>
+        <Style TargetType="Border">
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="5" />
+            <Setter Property="BorderBrush" Value="Black" />
+        </Style>    
+    </Window.Resources>
+    
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="400" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+            <TextBlock>
+                <Bold>1. Get Consumer Token.</Bold><LineBreak />
+                Go to <Hyperlink NavigateUri="http://www.urban-rivals.com/api/developer/" RequestNavigate="Hyperlink_RequestNavigate">www.urban-rivals.com/api/developer/</Hyperlink> and fill the form at the end. Fill the Accesses required with the desired values. You can ask for multiple Accesses. Check the documentation before. Store in a safe place the keys that they will give you, and write them here:
+            </TextBlock>
+            <DockPanel>
+                <TextBlock>Key:</TextBlock>
+                <TextBox x:Name="ConsumerKey" TextChanged="Clear" IsReadOnly="False" />
+            </DockPanel>
+            <DockPanel>
+                <TextBlock>Secret:</TextBlock>
+                <TextBox x:Name="ConsumerSecret" TextChanged="Clear" IsReadOnly="False" />
+            </DockPanel>
+            <TextBlock Style="{StaticResource UpperMargin}">
+                <Bold>2. Get Request Token</Bold><LineBreak />
+                <Button Click="GetRequestToken">Get a Request Token</Button>
+            </TextBlock>
+            <DockPanel>
+                <TextBlock>Key:</TextBlock>
+                <TextBox x:Name="RequestKey" />
+            </DockPanel>
+            <DockPanel>
+                <TextBlock>Secret:</TextBlock>
+                <TextBox x:Name="RequestSecret" />
+            </DockPanel>
+            <TextBlock Style="{StaticResource UpperMargin}">
+                <Bold>3. Authorize Request Token</Bold><LineBreak />
+                Login into Urban Rivals as usual. Then go to the URL that you will get below.<LineBreak />
+                <Button Click="AuthorizeRequestToken">Get URL to Authorize Request Token</Button>
+            </TextBlock>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0">URL:</TextBlock>
+                <TextBox Grid.Column="1" x:Name="AuthorizeURL" />
+                <Button Grid.Column="2" Click="CopyURL">Copy URL</Button>
+            </Grid>
+            <TextBlock>
+                Hit Authorize on the page that will be shown.
+            </TextBlock>
+            <TextBlock Style="{StaticResource UpperMargin}">
+                <Bold>4. Get Access Token</Bold><LineBreak />
+                Once you have authorized the Request Token, hit here to get the Access Token.<LineBreak />
+                <Button Click="GetAccessToken">Get Access Token</Button>
+            </TextBlock>
+            <DockPanel>
+                <TextBlock>Key:</TextBlock>
+                <TextBox x:Name="AccessKey" />
+            </DockPanel>
+            <DockPanel>
+                <TextBlock>Secret:</TextBlock>
+                <TextBox x:Name="AccessSecret" />
+            </DockPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1">
+            <TextBlock>
+                <Bold>5. Have fun making API Calls with the Access Token</Bold>
+                <LineBreak />Here are some examples of things you can do with the API. 
+                <LineBreak /><Underline>You must use only allowed calls:</Underline>
+            </TextBlock>
+
+            <TextBlock Style="{StaticResource UpperMargin}">
+                I have <Bold>Public</Bold> access
+            </TextBlock>
+            <Border>
+                <StackPanel>
+                    <Button Click="GetClans">Get the names of all the clans</Button>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Style="{StaticResource UpperMargin}">
+                I have <Bold>User</Bold> access
+            </TextBlock>
+            <Border>
+                <StackPanel>
+                    <Button Click="GetPlayerNameAndLevel">Get the player name and level</Button>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Style="{StaticResource UpperMargin}">
+                I have <Bold>Public and User</Bold> access
+            </TextBlock>
+            <Border>
+                <StackPanel>
+                    <TextBlock>Get tips on your language</TextBlock>
+                    <RadioButton x:Name="en" IsChecked="True">English</RadioButton>
+                    <RadioButton x:Name="es">Español</RadioButton>
+                    <RadioButton x:Name="fr">Français</RadioButton>
+                    <Button Click="GetTipsOnLanguage">Get Tips</Button>
+                </StackPanel>
+            </Border>
+
+            <TextBlock  Style="{StaticResource UpperMargin}">
+                I have <Bold>Action</Bold> access
+            </TextBlock>
+            <Border>
+                <StackPanel>
+                    <TextBlock>Send a message to the Guild</TextBlock>
+                    <DockPanel>
+                        <TextBlock>Message:</TextBlock>
+                        <TextBox x:Name="SendMessage" IsReadOnly="False" />
+                    </DockPanel>
+                    <Button Click="SendMessageToGuild">
+                        Send Message
+                    </Button>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        
+    </Grid>
+</Window>
