@@ -19,7 +19,7 @@ Basic usage:
 
     public string GetAuthorizeRequestTokenURL()
 
-5. Once authorized, get one AccessKey and AccessSecret with:
+5. Once authorized, get an Access Token with:
 
     public HttpStatusCode GetAccessToken()
 
