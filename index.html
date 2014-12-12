@@ -69,8 +69,8 @@ It contains example code in /UrbanRivalsApiManagerTest</p>
 <p>Create an ApiCall using one of the list of ApiCallList. You need the correct access (Public, User and/or Access) for the call to work.
 Here are some examples:</p>
 
-<p><pre><code>var getInfoFromPlayerCall = new ApiCallList.General.GetPlayer();
-var sendGuildMessageCall = new ApiCallList.Guilds.SendGuildMsg("My guild is the best");</code></pre></p>
+<p><pre><code>var getInfoFromPlayerCall = new ApiCallList.General.GetPlayer(); // Needs User access
+var sendGuildMessageCall = new ApiCallList.Guilds.SendGuildMsg("My guild is the best"); // Needs Action access</code></pre></p>
 </li>
 <li>
 <p>Finally, you can send requests to the server using this method:</p>
