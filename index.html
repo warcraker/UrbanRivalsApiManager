@@ -44,15 +44,15 @@
 <li>
 <p>Create an instance of ApiManager using this constructor:</p>
 
-<p>public ApiManager(string consumerKey, string consumerSecret)
-// using UrbanRivalsApiManager;</p>
+<pre><code>public ApiManager(string consumerKey, string consumerSecret)
+// using UrbanRivalsApiManager;</code></pre>
 </li>
 <li>
 <p>Get a Request Token with:</p>
 
 <p>public HttpStatusCode GetRequestToken()
-// using System.Net;
-// This should return HttpStatusCode.OK if everything went right ;) </p>
+<pre><code>// using System.Net;
+// This should return HttpStatusCode.OK if everything went right ;) </code></pre></p>
 </li>
 <li>
 <p>Instruct the user to authorize your app using the URL provided with:</p>
@@ -62,19 +62,19 @@
 <li>
 <p>Once authorized, get an Access Token with:</p>
 
-<p>public HttpStatusCode GetAccessToken()</p>
+<p><pre><code>public HttpStatusCode GetAccessToken()</code></pre></p>
 </li>
 <li>
 <p>Create an ApiCall using one of the list of ApiCallList. You need the correct access (Public, User and/or Access) for the call to work.
 Here are some examples:</p>
 
-<p>var getInfoFromPlayerCall = new ApiCallList.General.GetPlayer();
-var sendGuildMessageCall = new ApiCallList.Guilds.SendGuildMsg("My guild is the best");</p>
+<p><pre><code>var getInfoFromPlayerCall = new ApiCallList.General.GetPlayer();
+var sendGuildMessageCall = new ApiCallList.Guilds.SendGuildMsg("My guild is the best");</code></pre></p>
 </li>
 <li>
 <p>Finally, you can send requests to the server using this method:</p>
 
-<p>public HttpStatusCode SendRequest(ApiCall call, out string response)</p>
+<p><pre><code>public HttpStatusCode SendRequest(ApiCall call, out string response)</code></pre></p>
 </li>
 <li><p>You can use the "response" parameter from the previous call if you were expecting data from the server</p></li>
 </ol>
