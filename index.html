@@ -129,7 +129,16 @@ secondCall.msg = "Want to play?";
 call.ContextFilter = new List&lt;string&gt;() { "player.name" }; // Get only the player name
 </code></pre>
 
-<p>Once you get the response from the server, you can convert the string to a dynamic object to get the info that you want. Check /UrbanRivalsApiManagerTest to see code examples</p>
+<p>Once you get the response from the server, you can convert the string to a dynamic object to get the info that you want.</p> 
+
+<pre><code>var getPlayerName = new CallList.General.GetPlayer();
+string responseString;
+manager.SendRequest(getPlayerName, out responseString);
+dynamic response = JsonDecoder.Decode(responseString); // using Procurios.Public;
+string name = response[getPlayerName.Call]["context"]["player"]["name"].ToString();
+</code></pre>
+
+<p>Check /UrbanRivalsApiManagerTest to see code examples</p>
       </section>
     </div>
 
