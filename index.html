@@ -125,7 +125,11 @@ secondCall.msg = "Want to play?";
 
 <p>You can also set the ItemFilter and ContextFilter of any ApiCall to make the server response lighter.</p>
 
-<p>Check /UrbanRivalsApiManagerTest to see more code examples</p>
+<pre><code>var call = new ApiCallList.General.GetPlayer();
+call.ContextFilter = new List&lt;string&gt;() { "player.name" }; // Get only the player name
+</code></pre>
+
+<p>Once you get the response from the server, you can convert the string to a dynamic object to get the info that you want. Check /UrbanRivalsApiManagerTest to see code examples</p>
       </section>
     </div>
 
