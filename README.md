@@ -1,16 +1,18 @@
 UrbanRivalsApiManager
 =====================
 
-C# library to work with the Urban Rivals API. It contains example code in /UrbanRivalsApiManagerTest
+C# library to work with the Urban Rivals API.
+It contains example code in /UrbanRivalsApiManagerTest.
 
 Basic usage:
 ------------
-1. Go to http://www.urban-rivals.com/api/developer/ and get your Consumer Token (a Key and a Secret)
+
+1. Go to http://www.urban-rivals.com/api/developer/ read the documentation, and get your Consumer Token (a Key and a Secret)
 
 2. Create an instance of ApiManager using this constructor:
 
     public ApiManager(string consumerKey, string consumerSecret)
-    // using UrbanRivalsApiManager;
+    // using UrbanRivalsApiManager;</code></pre>
 
 3. Get a Request Token with:
 
@@ -29,8 +31,8 @@ Basic usage:
 6. Create an ApiCall using one of the list of ApiCallList. You need the correct access (Public, User and/or Access) for the call to work.
 Here are some examples:
 
-    var getInfoFromPlayerCall = new ApiCallList.General.GetPlayer();
-    var sendGuildMessageCall = new ApiCallList.Guilds.SendGuildMsg("My guild is the best");
+    var getInfoFromPlayerCall = new ApiCallList.General.GetPlayer(); // Needs User access
+    var sendGuildMessageCall = new ApiCallList.Guilds.SendGuildMsg("My guild is the best"); // Needs Action access
 
 7. Finally, you can send requests to the server using this method:
 
@@ -40,6 +42,7 @@ Here are some examples:
 
 Advanced usage:
 ---------------
+
 I'll expect you to know some basics about how the OAuth protocol works.
 
 The ApiManager instance stores the last used Request and Access tokens, but still you can get the result of the GetRequestToken() and GetAccessToken() with the corresponding overloads:
@@ -47,6 +50,7 @@ The ApiManager instance stores the last used Request and Access tokens, but stil
     public HttpStatusCode GetRequestToken(out string requestTokenKey, out string requestTokenSecret)
     public HttpStatusCode GetAccessToken(out string accessTokenKey, out string accessTokenSecret)
     // Every call to GetRequestToken() or GetAccessToken() that works stores internally the Token.
+
 
 If you want to use an Access Token from a previous sesion, you can instantiate ApiManager with this overload:
 
@@ -78,4 +82,15 @@ You can send multiple ApiCall's on the same request using ApiRequest. Here's an 
 
 You can also set the ItemFilter and ContextFilter of any ApiCall to make the server response lighter.
 
-Check /UrbanRivalsApiManagerTest to see more code examples
+    var call = new ApiCallList.General.GetPlayer();
+    call.ContextFilter = new List&lt;string&gt;() { "player.name" }; // Get only the player name
+
+Once you get the response from the server, you can convert the string to a dynamic object to get the info that you want.
+
+    var getPlayerNameCall = new CallList.General.GetPlayer();
+    string responseString;
+    manager.SendRequest(getPlayerNameCall, out responseString);
+    dynamic response = JsonDecoder.Decode(responseString); // using Procurios.Public;
+    string name = response[getPlayerNameCall.Call]["context"]["player"]["name"].ToString();
+
+Check /UrbanRivalsApiManagerTest to see code examples.
