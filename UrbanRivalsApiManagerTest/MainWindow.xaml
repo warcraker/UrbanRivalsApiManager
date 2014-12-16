@@ -1,7 +1,7 @@
 ﻿<Window x:Class="UrbanRivalsApiManager.Test.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="ApiManager Test" Height="500" Width="700" Icon="Resources/pillz_vertical.png">
+        Title="ApiManager Test" Height="550" Width="700" Icon="Resources/pillz_vertical.png">
 
     <Window.Resources>
         <Style TargetType="TextBlock">
@@ -62,10 +62,14 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0">URL:</TextBlock>
-                <TextBox Grid.Column="1" x:Name="AuthorizeURL" />
+                <TextBox Grid.Column="1" x:Name="AuthorizeURL"  Margin="5,0"/>
                 <Button Grid.Column="2" Click="CopyURL">Copy URL</Button>
+                <TextBlock Grid.Column="3" Margin="5,0">or</TextBlock>
+                <Button Grid.Column="4" Click="GoToUrl">Go to URL</Button>
             </Grid>
             <TextBlock>
                 Hit Authorize on the page that will be shown.

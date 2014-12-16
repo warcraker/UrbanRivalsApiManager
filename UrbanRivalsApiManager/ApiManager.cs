@@ -134,17 +134,10 @@ namespace UrbanRivalsApiManager
         /// <remarks>The user must be logged into Urban Rivals before using the URL.</remarks>
         public string GetAuthorizeRequestTokenURL(string requestTokenKey, string requestTokenSecret)
         {
-            if (String.IsNullOrWhiteSpace(requestTokenKey))
-                throw new ArgumentNullException("requestTokenKey");
-            if (String.IsNullOrWhiteSpace(requestTokenSecret))
-                throw new ArgumentNullException("requestTokenSecret");
-
+            string timestamp = OAuthBase.GenerateTimeStamp();
+            string nonce = OAuthBase.GenerateNonce();
             string normalizedUrl, normalizedRequestParameters;
-            string timestamp, nonce, signature;
-
-            timestamp = OAuthBase.GenerateTimeStamp();
-            nonce = OAuthBase.GenerateNonce();
-            signature = OAuthBase.GenerateSignature(
+            string signature = OAuthBase.GenerateSignature(
                 new Uri(ApiURLs.AuthorizeToken),
                 ConsumerToken[0], ConsumerToken[1], requestTokenKey, requestTokenSecret,
                 "POST", timestamp, nonce, out normalizedUrl, out normalizedRequestParameters);
@@ -234,7 +227,7 @@ namespace UrbanRivalsApiManager
             if (request == null)
                 throw new ArgumentNullException("request");
 
-            if (request.ApiCallsCount == 0)
+            if (request.ApiCallsCount < 1)
                 throw new ArgumentException("The request must contains at least one ApiCall", "request");
 
             List<ApiParameter> parameters = new List<ApiParameter>();

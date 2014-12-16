@@ -280,11 +280,19 @@ namespace UrbanRivalsApiManager.Test
         {
             if (AuthorizeURL.Text == "")
             {
-                MessageBox.Show("There is no URL to copy. Finish previous steps and click on get URL");
+                MessageBox.Show("There is no URL. Finish previous steps and click on get URL");
                 return;
             }
-            Clipboard.SetText(AuthorizeURL.Text);
-            MessageBox.Show(String.Format("This text has been copied to the clipboard:{0}{1}", Environment.NewLine, Clipboard.GetText()));
+            Clipboard.SetDataObject(AuthorizeURL.Text);
+        }
+        private void GoToUrl(object sender, RoutedEventArgs e)
+        {
+            if (AuthorizeURL.Text == "")
+            {
+                MessageBox.Show("There is no URL. Finish previous steps and click on get URL");
+                return;
+            }
+            System.Diagnostics.Process.Start(AuthorizeURL.Text);
         }
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {
