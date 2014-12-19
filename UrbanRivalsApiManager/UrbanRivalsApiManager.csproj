@@ -58,9 +58,9 @@
     <Compile Include="ApiManager.cs" />
     <Compile Include="ApiRequest.cs" />
     <Compile Include="Base64Converter.cs" />
-    <Compile Include="External\ExtApi.cs" />
-    <Compile Include="External\OAuthBase.cs" />
-    <Compile Include="External\JsonDecoder.cs" />
+    <Compile Include="External\ExtApi\ExtApi.cs" />
+    <Compile Include="External\OAuthBase\OAuthBase.cs" />
+    <Compile Include="External\JsonDecoder\JsonDecoder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
