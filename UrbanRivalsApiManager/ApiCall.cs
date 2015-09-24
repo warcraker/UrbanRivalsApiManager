@@ -59,7 +59,7 @@ namespace UrbanRivalsApiManager
         public List<string> ContextFilter { get; set; }
 
         /// <summary>
-        /// Tries to set the parameter to the specified value. Doesn't check that the value is correct.
+        /// Tries to set the parameter to the specified value.
         /// </summary>
         /// <param name="parameterName">Can't be null or whitespace.</param>
         /// <param name="value">Must be in the subset T ∈ (null, bool, int, string, List&lt;T&gt;). Can't be null if is a compulsory parameter.</param>
@@ -77,10 +77,18 @@ namespace UrbanRivalsApiManager
                 if (CompulsoryParameters.Contains(parameterName))
                     return false;
 
-                Parameters[parameterName] = EmptyValue;
+                value = EmptyValue;
             }
-                
-            Parameters[parameterName] = value;
+
+            try
+            {
+                Parameters[parameterName] = value;
+            }
+            catch
+            {
+                return false;
+            }
+
             return true;
         }
         /// <summary>
@@ -152,7 +160,7 @@ namespace UrbanRivalsApiManager
         /// Returns the ApiCall encoded in JSON.
         /// </summary>
         /// <returns></returns>
-        /// <remarks>The server requries the JSON request to be encoded as an array. This method returns a single element.</remarks>
+        /// <remarks>The server requires the JSON request to be encoded as an array. This method returns a single element.</remarks>
         public string ToJson()
         {
             StringBuilder builder = new StringBuilder();
