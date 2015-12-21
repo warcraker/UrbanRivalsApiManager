@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 namespace UrbanRivalsApiManager
 {
     /// <summary>
-    /// Defines the esential elements for an ApiCall. To use a specific ApiCall use <seealso cref="ApiCallList"/>
+    /// Defines the essential elements for an ApiCall. To use a specific ApiCall use <seealso cref="ApiCallList"/>
     /// </summary>
     public abstract class ApiCall
     {
@@ -111,6 +111,9 @@ namespace UrbanRivalsApiManager
 
             if (CompulsoryParameters.Contains(parameterName) && value == null)
                 throw new ArgumentException(parameterName + " is a compulsory parameter and cannot be null", "parameter");
+
+            // Sanity check. This should never happen. 
+            throw new Exception("SetParamenterValue() has failed for unknown reasons.");
         }
         /// <summary>
         /// Tries to get the value of the specified parameter.
@@ -153,8 +156,8 @@ namespace UrbanRivalsApiManager
             if (!Parameters.Keys.Contains(parameterName))
                 throw new ArgumentException("The parameter doesn't exist", "parameter");
 
-            // This should never happen
-            throw new Exception("GetParameterValue() has failed. This is the parameter value: " + parameterName);
+            // Sanity check. This should never happen.
+            throw new Exception("GetParameterValue() has failed for unknown reasons.");
         }
         /// <summary>
         /// Returns the ApiCall encoded in JSON.

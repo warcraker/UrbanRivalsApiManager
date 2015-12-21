@@ -511,7 +511,7 @@ namespace UrbanRivalsApiManager
                 }
                 public List<int> characterInCollectionID
                 {
-                    get { return (List<int>)GetParameterValue("characterInCollectionID"); }
+                    get { return (int)GetParameterValue("characterInCollectionID"); }
                     set { SetParamenterValue("characterInCollectionID", value); }
                 }
                 public int battleID
@@ -532,18 +532,11 @@ namespace UrbanRivalsApiManager
             }
             public class LoadSavedPreset : ApiCall
             {
-                private LoadSavedPreset()
+                public LoadSavedPreset()
                     : base ("collections.loadSavedPreset")
                 {
                     RequiresUserAccess = true;
                     ReturnsContext = true;
-
-                    AddCompulsoryParameter("presetID");
-                }
-                public LoadSavedPreset(int presetID)
-                    : this()
-                {
-                    SetParamenterValue("presetID", presetID);
                 }
                 public int presetID
                 {
@@ -1296,11 +1289,6 @@ namespace UrbanRivalsApiManager
                     get { return (int)GetParameterValue("clanID"); }
                     set { SetParamenterValue("clanID", value); }
                 }
-                public string groupType
-                {
-                    get { return (string)GetParameterValue("groupType"); }
-                    set { SetParamenterValue("groupType", value); }
-                }
                 public string sortBy
                 {
                     get { return (string)GetParameterValue("sortBy"); }
@@ -1353,11 +1341,6 @@ namespace UrbanRivalsApiManager
                 {
                     get { return (int)GetParameterValue("clanID"); }
                     set { SetParamenterValue("clanID", value); }
-                }
-                public string groupType
-                {
-                    get { return (string)GetParameterValue("groupType"); }
-                    set { SetParamenterValue("groupType", value); }
                 }
                 public string sortBy
                 {
@@ -1428,6 +1411,11 @@ namespace UrbanRivalsApiManager
                 {
                     get { return (string)GetParameterValue("orderBy"); }
                     set { SetParamenterValue("orderBy", value); }
+                }
+                public string filter
+                {
+                    get { return (string)GetParameterValue("filter"); }
+                    set { SetParamenterValue("filter", value); }
                 }
                 public string imageSize
                 {
@@ -2059,6 +2047,16 @@ namespace UrbanRivalsApiManager
                     ReturnsContext = true;
                 }
             }
+            public class GetTutorialTips : ApiCall
+            {
+                public GetTutorialTips()
+                    : base("players.getTutorialTips")
+                {
+                    RequiresUserAccess = true;
+                    ReturnsContext = true;
+                    ReturnsItems = true;
+                }
+            }
             public class RemoveFriend : ApiCall
             {
                 private RemoveFriend()
@@ -2165,22 +2163,16 @@ namespace UrbanRivalsApiManager
                     RequiresUserAccess = true;
                     ReturnsContext = true;
 
-                    AddCompulsoryParameter("filterKind");
                     AddCompulsoryParameter("activityTypeID");
                     AddCompulsoryParameter("filterState");
+                    AddParameter("filterKind");
                 }
-                public SetFeedFilter(string filterKind, int activityTypeID, bool filterState)
+                public SetFeedFilter(int activityTypeID, bool filterState)
                     : this()
 	            {
-                    SetParamenterValue("filterKind", filterKind);
                     SetParamenterValue("activityTypeID", activityTypeID);
                     SetParamenterValue("filterState", filterState);
 	            }
-                public int filterKind
-                {
-                    get { return (int)GetParameterValue("filterKind"); }
-                    set { SetParamenterValue("filterKind", value); }
-                }
                 public int activityTypeID
                 {
                     get { return (int)GetParameterValue("activityTypeID"); }
@@ -2190,6 +2182,11 @@ namespace UrbanRivalsApiManager
                 {
                     get { return (bool)GetParameterValue("filterState"); }
                     set { SetParamenterValue("filterState", value); }
+                }
+                public int filterKind
+                {
+                    get { return (int)GetParameterValue("filterKind"); }
+                    set { SetParamenterValue("filterKind", value); }
                 }
             }
             public class SetLanguages : ApiCall
@@ -2274,6 +2271,52 @@ namespace UrbanRivalsApiManager
                     set { SetParamenterValue("readStatus", value); }
                 }
             }
+            public class SetSpecialOfferSeen : ApiCall
+            {
+                private SetSpecialOfferSeen()
+                    : base("players.setSpecialOfferSeen")
+                {
+                    RequiresUserAccess = true;
+                    ReturnsContext = true;
+                    ReturnsItems = true;
+
+                    AddCompulsoryParameter("id_offer");
+                    AddCompulsoryParameter("is_accepted");
+                }
+                public SetSpecialOfferSeen(int id_offer, bool is_accepted)
+                    : this()
+                {
+                    SetParamenterValue("id_offer", id_offer);
+                    SetParamenterValue("is_accepted", is_accepted);
+                }
+                public int id_offer
+                {
+                    get { return (int)GetParameterValue("id_offer"); }
+                    set { SetParamenterValue("id_offer", value); }
+                }
+                public bool is_accepted
+                {
+                    get { return (bool)GetParameterValue("is_accepted"); }
+                    set { SetParamenterValue("is_accepted", value); }
+                }
+            }
+            public class SetTutorialTipSeen : ApiCall
+            {
+                public SetTutorialTipSeen()
+                    : base("players.setTutorialTipSeen")
+                {
+                    RequiresUserAccess = true;
+                    ReturnsContext = true;
+                    ReturnsItems = true;
+
+                    AddParameter("codename");
+                }
+                public string codename
+                {
+                    get { return (string)GetParameterValue("codename"); }
+                    set { SetParamenterValue("codename", codename); }
+                }
+            }
             public class WriteFeedMsg : ApiCall
             {
                 public WriteFeedMsg()
@@ -2290,6 +2333,29 @@ namespace UrbanRivalsApiManager
                     set { SetParamenterValue("msg", value); }
                 }
                 
+            }
+        }
+        public class Urc
+        {
+            public class GetCharacters : ApiCall
+            {
+                public GetCharacters()
+                    : base("urc.getCharacters")
+                {
+                    RequiresPublicAccess = true;
+                    ReturnsContext = true;
+                    ReturnsItems = true;
+                }
+            }
+            public class GetClans : ApiCall
+            {
+                public GetClans()
+                    : base("urc.getClans")
+                {
+                    RequiresPublicAccess = true;
+                    ReturnsContext = true;
+                    ReturnsItems = true;
+                }
             }
         }
     }
