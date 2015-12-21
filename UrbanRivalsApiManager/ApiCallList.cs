@@ -509,7 +509,7 @@ namespace UrbanRivalsApiManager
                 {
                     SetParamenterValue("characterInCollectionID", characterInCollectionID);
                 }
-                public List<int> characterInCollectionID
+                public int characterInCollectionID
                 {
                     get { return (int)GetParameterValue("characterInCollectionID"); }
                     set { SetParamenterValue("characterInCollectionID", value); }
