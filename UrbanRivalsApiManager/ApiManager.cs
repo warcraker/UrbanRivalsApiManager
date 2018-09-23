@@ -8,38 +8,74 @@ using OAuth;
 
 namespace UrbanRivalsApiManager
 {
+    /// <summary>
+    /// Urls used for API access.
+    /// </summary>
     internal static class ApiURLs
     {
-        public static readonly string AccessToken = @"http://www.urban-rivals.com/api/auth/access_token.php";
+        /// <summary>
+        /// Used to retrieve a request token.
+        /// </summary>
         public static readonly string RequestToken = @"http://www.urban-rivals.com/api/auth/request_token.php";
+        /// <summary>
+        /// Used to authorize a request token.
+        /// </summary>
         public static readonly string AuthorizeToken = @"http://www.urban-rivals.com/api/auth/authorize.php";
+        /// <summary>
+        /// Used to retrieve an access token.
+        /// </summary>
+        public static readonly string AccessToken = @"http://www.urban-rivals.com/api/auth/access_token.php";
+        /// <summary>
+        /// Target of the API calls.
+        /// </summary>
         public static readonly string Server = @"http://www.urban-rivals.com/api/";
+        /// <summary>
+        /// This will be called after the user authorizes access.
+        /// </summary>
         public static readonly string Callback = @"http://www.urban-rivals.com/";
     }
 
     /// <summary>
     /// Manages authentication through OAuth with Urban Rivals and allows to send requests.
     /// </summary>
-    /// <remarks> The OAuth protocol (Consumer > Request > AuthorizeRequest > Access) must be followed in order. Allows the use of a valid Access Token to avoid sesion re-authentication.</remarks>
+    /// <remarks> The OAuth protocol (Consumer > Request > AuthorizeRequest > Access) must be followed in order. Allows the use of a valid access token to avoid session re-authentication.</remarks>
     public class ApiManager
     {
+        /// <summary>
+        /// Extracts tokens from the string sent by the server.
+        /// </summary>
         private static readonly Regex TokensFromServerResponseRegex = new Regex(@"oauth_token=(?<token>[0-9a-f]+)&oauth_token_secret=(?<token_secret>[0-9a-f]+)");
 
-        private ApiRunner ApiRunner;
+        /// <summary>
+        /// Used on the authorization part of the protocol.
+        /// </summary>
         private OAuthBase OAuthBase;
+        /// <summary>
+        /// Used on the API calls.
+        /// </summary>
+        private ApiRunner ApiRunner;
 
+        /// <summary>
+        /// Stores the last consumer token used.
+        /// </summary>
         private string[] ConsumerToken = new string[2];
+        /// <summary>
+        /// Stores the last request token used.
+        /// </summary>
         private string[] RequestToken = new string[2];
+        /// <summary>
+        /// Stores the last access token used.
+        /// </summary>
         private string[] AccessToken = new string[2];
 
         /// <summary>
-        /// Creates a new ApiManager with the specified Consumer and Access Tokens.
+        /// Creates a new ApiManager with the specified consumer and access tokens.
         /// </summary>
-        /// <param name="consumerKey"></param>
-        /// <param name="consumerSecret"></param>
-        /// <param name="accessTokenKey"></param>
-        /// <param name="accessTokenSecret"></param>
-        /// <exception cref="ArgumentNullException">consumerKey or consumerSecret are null/empty/whitespace</exception>
+        /// <param name="consumerKey">Consumer token public part.</param>
+        /// <param name="consumerSecret">Consumer token secret part.</param>
+        /// <param name="accessTokenKey">Access token public part.</param>
+        /// <param name="accessTokenSecret">Access token secret part.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="consumerKey"/> or <paramref name="consumerSecret"/> are null, empty or whitespace</exception>
         public ApiManager(string consumerKey, string consumerSecret, string accessTokenKey, string accessTokenSecret)
         {
             if (String.IsNullOrWhiteSpace(consumerKey))
@@ -56,30 +92,30 @@ namespace UrbanRivalsApiManager
             AccessToken[1] = accessTokenSecret;
         }
         /// <summary>
-        /// Creates a new ApiManager with the specified Consumer Token.
+        /// Creates a new ApiManager with the specified consumer token.
         /// </summary>
-        /// <param name="consumerKey"></param>
-        /// <param name="consumerSecret"></param>
-        /// <exception cref="ArgumentNullException">consumerKey or consumerSecret are null/empty/whitespace</exception>
+        /// <param name="consumerKey">Consumer token public part.</param>
+        /// <param name="consumerSecret">Consumer token secret part.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="consumerKey"/> or <paramref name="consumerSecret"/> are null, empty or whitespace</exception>
         public ApiManager(string consumerKey, string consumerSecret)
             : this (consumerKey, consumerSecret, "", "") { }
         private ApiManager() { }
 
         /// <summary>
-        /// Uses the stored Consumer Token to get from the server a Request Token that is stored internally.
+        /// Uses the stored consumer token to get from the server a request token that will be stored internally.
         /// </summary>
-        /// <returns>The server response. If it is different than <code>HttpStatusCode.OK</code> it means that the call failed.</returns>
+        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
         public HttpStatusCode GetRequestToken()
         {
             string dummy;
             return GetRequestToken(out dummy, out dummy);
         }
         /// <summary>
-        /// Uses the stored Consumer Token to get from the server a Request Token that is stored internally and returned through the out parameters.
+        /// Uses the stored consumer token to get from the server a request token that will be stored internally.
         /// </summary>
-        /// <param name="requestTokenKey"></param>
-        /// <param name="requestTokenSecret"></param>
-        /// <returns>The server response. If it is different than <code>HttpStatusCode.OK</code> it means that the call failed, and the output values are invalid.</returns>
+        /// <param name="requestTokenKey">Request token public part.</param>
+        /// <param name="requestTokenSecret">Request token secret part.</param>
+        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
         public HttpStatusCode GetRequestToken(out string requestTokenKey, out string requestTokenSecret)
         {
             requestTokenKey = "";
@@ -103,17 +139,21 @@ namespace UrbanRivalsApiManager
             return callResult.StatusCode;
         }
         /// <summary>
-        /// Uses the default system web browser to request the user to authorize the stored Request Token.
+        /// Uses the default system web browser to request the user to authorize the stored request token.
         /// </summary>
         /// <remarks>The user must be logged into Urban Rivals before calling this.</remarks>
+        /// <exception cref="InvalidOperationException">There is not a request token to authorize</exception>
         public void AuthorizeRequestToken()
         {
             AuthorizeRequestToken(RequestToken[0], RequestToken[1]);
         }
         /// <summary>
-        /// Uses the default system web browser to request the user to authorize the Request Token.
+        /// Uses the default system web browser to request the user to authorize the request token.
         /// </summary>
+        /// <param name="requestTokenKey">Request token public part.</param>
+        /// <param name="requestTokenSecret">Request token secret part.</param>
         /// <remarks>The user must be logged into Urban Rivals before calling this.</remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="requestTokenKey"/> or <paramref name="requestTokenSecret"/> are null, empty or whitespace</exception>
         public void AuthorizeRequestToken(string requestTokenKey, string requestTokenSecret)
         {
             string URL = GetAuthorizeRequestTokenURL(requestTokenKey, requestTokenSecret);
@@ -121,17 +161,21 @@ namespace UrbanRivalsApiManager
             System.Diagnostics.Process.Start(URL);
         }
         /// <summary>
-        /// Creates a valid URL to request the user to authorize the stored Request Token.
+        /// Creates a valid URL to request the user to authorize the stored request token.
         /// </summary>
         /// <remarks>The user must be logged into Urban Rivals before using the URL.</remarks>
+        /// <exception cref="InvalidOperationException">There is not a request token to authorize</exception>
         public string GetAuthorizeRequestTokenURL()
         {
             return GetAuthorizeRequestTokenURL(RequestToken[0], RequestToken[1]);
         }
         /// <summary>
-        /// Creates a valid URL to request the user to authorize the Request Token.
+        /// Creates a valid URL to request the user to authorize the request token.
         /// </summary>
+        /// <param name="requestTokenKey">Request token public part.</param>
+        /// <param name="requestTokenSecret">Request token secret part.</param>
         /// <remarks>The user must be logged into Urban Rivals before using the URL.</remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="requestTokenKey"/> or <paramref name="requestTokenSecret"/> are null, empty or whitespace</exception>
         public string GetAuthorizeRequestTokenURL(string requestTokenKey, string requestTokenSecret)
         {
             string timestamp = OAuthBase.GenerateTimeStamp();
@@ -148,35 +192,45 @@ namespace UrbanRivalsApiManager
                 + "&oauth_callback=" + ApiURLs.Callback;
         }
         /// <summary>
-        /// Uses the stored Request Token to get from the server an Authorized Token that is stored internally.
+        /// Uses the stored request token to get from the server an authorized token that will be stored internally.
         /// </summary>
-        /// <returns>The server response. If it is different than <code>HttpStatusCode.OK</code> it means that the call failed.</returns>
+        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
+        /// <exception cref="InvalidOperationException">There is not a request token to authorize</exception>
         public HttpStatusCode GetAccessToken()
         {
             string dummy;
             return GetAccessToken(RequestToken[0], RequestToken[1], out dummy, out dummy);
         }
         /// <summary>
-        /// Uses the Request Token to get from the server an Authorized Token that is stored internally.
+        /// Uses the request token to get from the server an authorized token that will be stored internally.
         /// </summary>
-        /// <returns>The server response. If it is different than <code>HttpStatusCode.OK</code> it means that the call failed.</returns>
+        /// <param name="requestTokenKey">Request token public part.</param>
+        /// <param name="requestTokenSecret">Request token secret part.</param>
+        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="requestTokenKey"/> or <paramref name="requestTokenSecret"/> are null, empty or whitespace</exception>
         public HttpStatusCode GetAccessToken(string requestTokenKey, string requestTokenSecret) 
         {
             string dummy;
             return GetAccessToken(requestTokenKey, requestTokenSecret, out dummy, out dummy);
         }
         /// <summary>
-        /// Uses the stored Request Token to get from the server an Authorized Token that is stored internally and returned through the out parameters.
+        /// Uses the stored request token to get from the server an authorized token that will be stored internally.
         /// </summary>
-        /// <returns>The server response. If it is different than <code>HttpStatusCode.OK</code> it means that the call failed, and the output values are invalid.</returns>
+        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
+        /// <exception cref="InvalidOperationException">There is not a request token to authorize</exception>
         public HttpStatusCode GetAccessToken(out string accessTokenKey, out string accessTokenSecret) 
         {
             return GetAccessToken(RequestToken[0], RequestToken[1], out accessTokenKey, out accessTokenSecret);
         }
         /// <summary>
-        /// Uses the Request Token to get from the server an Authorized Token that is stored internally and returned through the out parameters.
+        /// Uses the request token to get from the server an authorized token that will be stored internally.
         /// </summary>
-        /// <returns>The server response. If it is different than <code>HttpStatusCode.OK</code> it means that the call failed, and the output values are invalid.</returns>
+        /// <param name="requestTokenKey">Request token public part.</param>
+        /// <param name="requestTokenSecret">Request token secret part.</param>
+        /// <param name="accessTokenKey">Access token public part.</param>
+        /// <param name="accessTokenSecret">Access token secret part.</param>
+        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="requestTokenKey"/> or <paramref name="requestTokenSecret"/> are null, empty or whitespace</exception>
         public HttpStatusCode GetAccessToken(string requestTokenKey, string requestTokenSecret, out string accessTokenKey, out string accessTokenSecret)
         {
             accessTokenKey = "";
@@ -201,12 +255,12 @@ namespace UrbanRivalsApiManager
             return callResult.StatusCode;
         }
         /// <summary>
-        /// Sends a Request (a single ApiCall) to the server using the stored Consumer and Access Tokens. 
+        /// Sends a Request (a single ApiCall) to the server using the stored consumer and access tokens. 
         /// </summary>
-        /// <param name="call"></param>
-        /// <param name="response"></param>
-        /// <returns>The server response. If it is different than <code>HttpStatusCode.OK</code> it means that the call failed, and the output values are invalid.</returns>
-        /// <remarks>The server requries the JSON request to be encoded as an array. ApiCall.ToJson() doesn't returns an array. This method takes care of that.</remarks>
+        /// <param name="call">API call to be sent.</param>
+        /// <param name="response">Server response.</param>
+        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="call"/> is <code>null</code></exception>
         public HttpStatusCode SendRequest(ApiCall call, out string response)
         {
             if (call == null)
@@ -217,11 +271,13 @@ namespace UrbanRivalsApiManager
             return SendRequest(request, out response);
         }
         /// <summary>
-        /// Sends a Request (one or more ApiCall's) to the server using the stored Consumer and Access Tokens. 
+        /// Sends a Request (one or more ApiCall's) to the server using the stored consumer and access tokens. 
         /// </summary>
-        /// <param name="request"></param>
-        /// <param name="response"></param>
-        /// <returns>The server response. If it is different than <code>HttpStatusCode.OK</code> it means that the call failed, and the output values are invalid.</returns>
+        /// <param name="call">API call(s) to be sent.</param>
+        /// <param name="response">Server response.</param>
+        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <code>null</code></exception>
+        /// <exception cref="ArgumentException"><paramref name="request"/> must contain at least one <see cref="ApiCall"/></exception>
         public HttpStatusCode SendRequest(ApiRequest request, out string response)
         {
             if (request == null)

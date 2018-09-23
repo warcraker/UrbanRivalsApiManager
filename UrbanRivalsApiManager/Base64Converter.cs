@@ -7,11 +7,11 @@ namespace UrbanRivalsApiManager.Utils
     public static class Base64Converter
     {
         /// <summary>
-        /// Used for the "players.setPicture" ApiCall. Converts an image from a file to a Base64 string.
+        /// Used for the <see cref="ApiCallList.Players.SetPicture"/> <see cref="ApiCall"/>. Converts an image from a file to a Base64 string.
         /// </summary>
         /// <param name="filepath"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException">filepath is null/empty/whitespace</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="filepath"/> is null, empty or whitespace</exception>
         /// <exception cref="System.IO.FileNotFoundException">The specified file does not exist.</exception>
         public static string ConvertImageFileToBase64(string filepath)
         {

@@ -12,9 +12,18 @@ namespace UrbanRivalsApiManager
     /// </summary>
     public abstract class ApiCall
     {
+        /// <summary>
+        /// Parameters with a <code>null</code> value will use this reference instead.
+        /// </summary>
         private static readonly object EmptyValue = new object();
 
+        /// <summary>
+        /// Parameters of the ApiCall and their values.
+        /// </summary>
         private Dictionary<string, object> Parameters;
+        /// <summary>
+        /// Names of the compulsory parameters. Those that cannot be <see cref="EmptyValue"/>.
+        /// </summary>
         private List<string> CompulsoryParameters;
 
         /// <summary>
@@ -29,6 +38,7 @@ namespace UrbanRivalsApiManager
         /// <code>True</code> if the ApiCall requires Action access to the API. <code>False</code> otherwise.
         /// </summary>
         public bool RequiresActionAccess { get; protected set; }
+
         /// <summary>
         /// <code>True</code> if the ApiCall returns Items. <code>False</code> otherwise.
         /// </summary>
@@ -37,18 +47,6 @@ namespace UrbanRivalsApiManager
         /// <code>True</code> if the ApiCall returns Context. <code>False</code> otherwise.
         /// </summary>
         public bool ReturnsContext { get; protected set; }
-        /// <summary>
-        /// The Call used. For a list of all valid calls check <seealso cref="http://www.urban-rivals.com/api/developer/"/>
-        /// </summary>
-        public string Call { get; protected set; }
-        /// <summary>
-        /// A list of all the parameters that the ApiCall accepts. This list will be empty for parameterless calls.
-        /// </summary>
-        public List<string> ParametersList { get { return Parameters.Keys.ToList(); } }
-        /// <summary>
-        /// A list of all the parameters that can't be left empty. This list will be empty for calls without compulsory parameters.
-        /// </summary>
-        public List<string> CompulsoryParametersList { get { return CompulsoryParameters.ToList(); } }
         /// <summary>
         /// Gets or Sets the ItemsFilter used in the ApiCall.
         /// </summary>
@@ -59,10 +57,23 @@ namespace UrbanRivalsApiManager
         public List<string> ContextFilter { get; set; }
 
         /// <summary>
+        /// Gets the call used. For a list of all valid calls check <seealso cref="http://www.urban-rivals.com/api/developer/"/>.
+        /// </summary>
+        public string Call { get; private set; }
+        /// <summary>
+        /// A list of all the parameters that the ApiCall accepts. This list will be empty for parameterless calls.
+        /// </summary>
+        public List<string> ParametersList { get { return Parameters.Keys.ToList(); } }
+        /// <summary>
+        /// A list of all the parameters that can't be left empty. This list will be empty for calls without compulsory parameters.
+        /// </summary>
+        public List<string> CompulsoryParametersList { get { return CompulsoryParameters.ToList(); } }
+
+        /// <summary>
         /// Tries to set the parameter to the specified value.
         /// </summary>
-        /// <param name="parameterName">Can't be null or whitespace.</param>
-        /// <param name="value">Must be in the subset T ∈ (null, bool, int, string, List&lt;T&gt;). Can't be null if is a compulsory parameter.</param>
+        /// <param name="parameterName">Name of the parameter. Can't be null or whitespace.</param>
+        /// <param name="value">Value of the parameter. Must be in the subset T ∈ (null, bool, int, string, List&lt;T&gt;). Can't be null if is a compulsory parameter.</param>
         /// <returns><code>True</code> if the parameter name is valid and the value is set. <code>False</code> otherwise.</returns>
         public bool TrySetParamenterValue(string parameterName, object value)
         {
@@ -94,9 +105,9 @@ namespace UrbanRivalsApiManager
         /// <summary>
         /// Sets the parameter to the specified value. Doesn't check that the value is correct.
         /// </summary>
-        /// <param name="parameterName">Can't be null or whitespace.</param>
-        /// <param name="value">Must be in the subset T ∈ (null, bool, int, string, List&lt;T&gt;). Can't be null if is a compulsory parameter.</param>
-        /// <exception cref="ArgumentNullException">parameterName is null, empty or whitespace</exception>
+        /// <param name="parameterName">Name of the parameter. Can't be null or whitespace.</param>
+        /// <param name="value">Value of the parameter. Must be in the subset T ∈ (null, bool, int, string, List&lt;T&gt;). Can't be null if is a compulsory parameter.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="parameterName"/> is null, empty or whitespace</exception>
         /// <exception cref="ArgumentException">The parameter doesn't exist, or is a compulsory parameter and the value is null.</exception>
         public void SetParamenterValue(string parameterName, object value)
         {
@@ -118,8 +129,8 @@ namespace UrbanRivalsApiManager
         /// <summary>
         /// Tries to get the value of the specified parameter.
         /// </summary>
-        /// <param name="parameterName"></param>
-        /// <param name="value"></param>
+        /// <param name="parameterName">Name of the parameter. Can't be null or whitespace.</param>
+        /// <param name="value">Value of the parameter.</param>
         /// <returns><code>True</code> if the name is valid. <code>False</code> otherwise.</returns>
         public bool TryGetParameterValue(string parameterName, out object value)
         {
@@ -140,7 +151,8 @@ namespace UrbanRivalsApiManager
         /// <summary>
         /// Gets the value of the specified parameter.
         /// </summary>
-        /// <param name="parameterName"></param>
+        /// <param name="parameterName">Name of the parameter. Can't be null or whitespace.</param>
+        /// <param name="value">Value of the parameter.</param>
         /// <returns><code>True</code> if the name is valid. <code>False</code> otherwise.</returns>
         /// <exception cref="ArgumentNullException">parameterName is null, empty or whitespace</exception>
         /// <exception cref="ArgumentException">The parameter doesn't exist.</exception>
@@ -159,10 +171,10 @@ namespace UrbanRivalsApiManager
             // Sanity check. This should never happen.
             throw new Exception("GetParameterValue() has failed for unknown reasons.");
         }
+
         /// <summary>
-        /// Returns the ApiCall encoded in JSON.
+        /// Returns the <see cref="ApiCall"/> encoded in JSON.
         /// </summary>
-        /// <returns></returns>
         /// <remarks>The server requires the JSON request to be encoded as an array. This method returns a single element.</remarks>
         public string ToJson()
         {
@@ -205,17 +217,31 @@ namespace UrbanRivalsApiManager
 
             return builder.ToString();
         }
+        private static void EncodeString(string item, StringBuilder builder)
+        {
+            builder.Append('"');
+            builder.Append(item);
+            builder.Append('"');
+        }
+        private static void EncodeItem(object item, StringBuilder builder)
+        {
+            builder.Append(JsonConvert.SerializeObject(item));
+        }
 
+        /// <summary>
+        /// Initializes basic data of the object.
+        /// </summary>
+        /// <remarks>In order to create inherited versions, call the <code>protected</code> constructor and methods inside your constructor.</remarks>
         private ApiCall() 
         {
             Parameters = new Dictionary<string, object>();
             CompulsoryParameters = new List<string>();
         }
         /// <summary>
-        /// Creates a new ApiCall with the call indicated
+        /// Creates a new ApiCall with the call indicated.
         /// </summary>
-        /// <param name="call"></param>
-        /// <remarks>This is the intended way to create inherited versions</remarks>
+        /// <param name="call">Name of the call.</param>
+        /// <remarks>This is the intended way to create inherited versions.</remarks>
         protected ApiCall(string call)
             : this()
         {
@@ -228,40 +254,32 @@ namespace UrbanRivalsApiManager
         /// <summary>
         /// Adds a parameter to the list of the parameters that the ApiCall is enforced to use. It also adds the parameter to the normal parameter list.
         /// </summary>
-        /// <param name="parameter"></param>
-        /// <remarks>This is intended to be used only on the constructor of a inherited version</remarks>
+        /// <param name="parameterName">Name of the parameter.</param>
+        /// <remarks>This is intended to be used only on the constructor of a inherited version.</remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="parameterName"/> is null, empty or whitespace</exception>
         /// <exception cref="ArgumentException">The parameter already exists on the compulsory parameters list</exception>
-        protected void AddCompulsoryParameter(string parameter)
+        protected void AddCompulsoryParameter(string parameterName)
         {
             if (CompulsoryParameters.Contains(parameter))
                 throw new ArgumentException("The parameter already exists on the compulsory parameters list", "parameter");
 
-            CompulsoryParameters.Add(parameter);
-            AddParameter(parameter);
+            CompulsoryParameters.Add(parameterName);
+            AddParameter(parameterName);
         }
         /// <summary>
         /// Adds a parameter to the list of the parameters accepted by the ApiCall. If the parameter is compulsory, call AddCompulsoryParameter() instead.
         /// </summary>
-        /// <param name="parameter"></param>
-        /// <remarks>This is intended to be used only on the constructor of a inherited version</remarks>
+        /// <param name="parameterName">Name of the parameter.</param>
+        /// <remarks>This is intended to be used only on the constructor of a inherited version.</remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="parameterName"/> is null, empty or whitespace</exception>
         /// <exception cref="ArgumentException">The parameter already exists on the parameters list</exception>
-        protected void AddParameter(string parameter)
+        protected void AddParameter(string parameterName)
         {
-            if (Parameters.ContainsKey(parameter))
+            if (Parameters.ContainsKey(parameterName))
                 throw new ArgumentException("The parameter already exists on the parameters list", "parameter");
 
-            Parameters.Add(parameter, EmptyValue);
+            Parameters.Add(parameterName, EmptyValue);
         }
 
-        private static void EncodeString(string item, StringBuilder builder)
-        {
-            builder.Append('"');
-            builder.Append(item);
-            builder.Append('"');
-        }
-        private static void EncodeItem(object item, StringBuilder builder)
-        {
-            builder.Append(JsonConvert.SerializeObject(item));
-        }
     }
 }
