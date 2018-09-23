@@ -6,7 +6,7 @@ using System.Text;
 namespace UrbanRivalsApiManager
 {
     /// <summary>
-    /// Represent a queue of ApiCall items. It can be used to send multiple different ApiCall items on the same HTTP Request
+    /// Represent a queue of ApiCall items.
     /// </summary>
     public class ApiRequest
     {
@@ -14,16 +14,31 @@ namespace UrbanRivalsApiManager
         internal int ApiCallsCount { get { return CallsQueue.Count; } }
 
         /// <summary>
-        /// Creates an empty ApiRequest.
+        /// Creates an new empty <see cref="ApiRequest"/>.
         /// </summary>
         public ApiRequest() 
         {
             CallsQueue = new Queue<ApiCall>();
         }
         /// <summary>
-        /// Enqueue an ApiCall to the end of the queue. Multiple ApiCall items with the same Call parameter are not allowed.
+        /// Creates a new <see cref="ApiRequest"/> with one <see cref="ApiCall"/> enqueued.
+        /// </summary>
+        /// <param name="apiCall">Call to be enqueued.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="apiCall"/> is <code>null</code></exception>
+        public ApiRequest(ApiCall apiCall)
+            : this()
+        {
+            if (apiCall == null)
+                throw new ArgumentNullException("apiCall");
+
+            this.EnqueueApiCall(apiCall);
+        }
+        /// <summary>
+        /// Enqueue an <see cref="ApiCall"/>. Multiple <see cref="ApiCall"/> items with the same <see cref="ApiCall.Call"/> are not allowed.
         /// </summary>
         /// <param name="apiCall"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="apiCall"/> is <code>null</code>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="apiCall"/> type of call is already included.</exception>
         public void EnqueueApiCall(ApiCall apiCall)
         {
             if (apiCall == null)
@@ -40,8 +55,9 @@ namespace UrbanRivalsApiManager
         {
             CallsQueue.Clear();
         }
+
         /// <summary>
-        /// Returns the string resulting from encoding on JSON the queue.
+        /// Returns the request encoded in JSON.
         /// </summary>
         /// <returns></returns>
         public string ToJson()
