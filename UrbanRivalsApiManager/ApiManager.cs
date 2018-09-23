@@ -51,6 +51,33 @@ namespace UrbanRivalsApiManager
         private string[] AccessToken = new string[2];
 
         /// <summary>
+        /// Creates a new ApiManager with the specified consumer, access and request tokens.
+        /// </summary>
+        /// <param name="consumerKey">Consumer token public part.</param>
+        /// <param name="consumerSecret">Consumer token secret part.</param>
+        /// <param name="accessTokenKey">Access token public part.</param>
+        /// <param name="accessTokenSecret">Access token secret part.</param>
+        /// <param name="requestTokenKey">Request token public part.</param>
+        /// <param name="requestTokenSecret">Request token secret part.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="consumerKey"/> or <paramref name="consumerSecret"/> are null, empty or whitespace</exception>
+        public ApiManager(string consumerKey, string consumerSecret, string accessTokenKey, string accessTokenSecret, string requestTokenKey, string requestTokenSecret)
+        {
+            if (String.IsNullOrWhiteSpace(consumerKey))
+                throw new ArgumentNullException("consumerKey");
+            if (String.IsNullOrWhiteSpace(consumerSecret))
+                throw new ArgumentNullException("consumerSecret");
+
+            ApiRunner = new ApiRunner();
+            OAuthBase = new OAuthBase();
+
+            ConsumerToken[0] = consumerKey;
+            ConsumerToken[1] = consumerSecret;
+            AccessToken[0] = accessTokenKey;
+            AccessToken[1] = accessTokenSecret;
+            RequestToken[0] = requestTokenKey;
+            RequestToken[1] = requestTokenSecret;
+        }
+        /// <summary>
         /// Creates a new ApiManager with the specified consumer and access tokens.
         /// </summary>
         /// <param name="consumerKey">Consumer token public part.</param>
@@ -59,6 +86,7 @@ namespace UrbanRivalsApiManager
         /// <param name="accessTokenSecret">Access token secret part.</param>
         /// <exception cref="ArgumentNullException"><paramref name="consumerKey"/> or <paramref name="consumerSecret"/> are null, empty or whitespace</exception>
         public ApiManager(string consumerKey, string consumerSecret, string accessTokenKey, string accessTokenSecret)
+            : this (consumerKey, consumerSecret, accessTokenKey, accessTokenSecret, "", "")
         {
             if (String.IsNullOrWhiteSpace(consumerKey))
                 throw new ArgumentNullException("consumerKey");
@@ -80,7 +108,7 @@ namespace UrbanRivalsApiManager
         /// <param name="consumerSecret">Consumer token secret part.</param>
         /// <exception cref="ArgumentNullException"><paramref name="consumerKey"/> or <paramref name="consumerSecret"/> are null, empty or whitespace</exception>
         public ApiManager(string consumerKey, string consumerSecret)
-            : this (consumerKey, consumerSecret, "", "") { }
+            : this (consumerKey, consumerSecret, "", "", "", "") { }
         private ApiManager() { }
 
         /// <summary>
