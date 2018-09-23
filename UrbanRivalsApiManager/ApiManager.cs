@@ -145,6 +145,9 @@ namespace UrbanRivalsApiManager
         /// <exception cref="InvalidOperationException">There is not a request token to authorize</exception>
         public void AuthorizeRequestToken()
         {
+            if (String.IsNullOrWhiteSpace(RequestToken[0]) || String.IsNullOrWhiteSpace(RequestToken[0]))
+                throw new InvalidOperationException("There is not a request token to authorize");
+
             AuthorizeRequestToken(RequestToken[0], RequestToken[1]);
         }
         /// <summary>
@@ -156,6 +159,11 @@ namespace UrbanRivalsApiManager
         /// <exception cref="ArgumentNullException"><paramref name="requestTokenKey"/> or <paramref name="requestTokenSecret"/> are null, empty or whitespace</exception>
         public void AuthorizeRequestToken(string requestTokenKey, string requestTokenSecret)
         {
+            if (String.IsNullOrWhiteSpace(requestTokenKey))
+                throw new ArgumentNullException("requestTokenKey");
+            if (String.IsNullOrWhiteSpace(requestTokenSecret))
+                throw new ArgumentNullException("requestTokenSecret");
+
             string URL = GetAuthorizeRequestTokenURL(requestTokenKey, requestTokenSecret);
 
             System.Diagnostics.Process.Start(URL);
@@ -167,6 +175,9 @@ namespace UrbanRivalsApiManager
         /// <exception cref="InvalidOperationException">There is not a request token to authorize</exception>
         public string GetAuthorizeRequestTokenURL()
         {
+            if (String.IsNullOrWhiteSpace(RequestToken[0]) || String.IsNullOrWhiteSpace(RequestToken[0]))
+                throw new InvalidOperationException("There is not a request token to authorize");
+
             return GetAuthorizeRequestTokenURL(RequestToken[0], RequestToken[1]);
         }
         /// <summary>
@@ -178,6 +189,11 @@ namespace UrbanRivalsApiManager
         /// <exception cref="ArgumentNullException"><paramref name="requestTokenKey"/> or <paramref name="requestTokenSecret"/> are null, empty or whitespace</exception>
         public string GetAuthorizeRequestTokenURL(string requestTokenKey, string requestTokenSecret)
         {
+            if (String.IsNullOrWhiteSpace(requestTokenKey))
+                throw new ArgumentNullException("requestTokenKey");
+            if (String.IsNullOrWhiteSpace(requestTokenSecret))
+                throw new ArgumentNullException("requestTokenSecret");
+
             string timestamp = OAuthBase.GenerateTimeStamp();
             string nonce = OAuthBase.GenerateNonce();
             string normalizedUrl, normalizedRequestParameters;
@@ -198,6 +214,9 @@ namespace UrbanRivalsApiManager
         /// <exception cref="InvalidOperationException">There is not a request token to authorize</exception>
         public HttpStatusCode GetAccessToken()
         {
+            if (String.IsNullOrWhiteSpace(RequestToken[0]) || String.IsNullOrWhiteSpace(RequestToken[0]))
+                throw new InvalidOperationException("There is not a request token to authorize");
+
             string dummy;
             return GetAccessToken(RequestToken[0], RequestToken[1], out dummy, out dummy);
         }
@@ -210,6 +229,11 @@ namespace UrbanRivalsApiManager
         /// <exception cref="ArgumentNullException"><paramref name="requestTokenKey"/> or <paramref name="requestTokenSecret"/> are null, empty or whitespace</exception>
         public HttpStatusCode GetAccessToken(string requestTokenKey, string requestTokenSecret) 
         {
+            if (String.IsNullOrWhiteSpace(requestTokenKey))
+                throw new ArgumentNullException("requestTokenKey");
+            if (String.IsNullOrWhiteSpace(requestTokenSecret))
+                throw new ArgumentNullException("requestTokenSecret");
+
             string dummy;
             return GetAccessToken(requestTokenKey, requestTokenSecret, out dummy, out dummy);
         }
@@ -220,6 +244,9 @@ namespace UrbanRivalsApiManager
         /// <exception cref="InvalidOperationException">There is not a request token to authorize</exception>
         public HttpStatusCode GetAccessToken(out string accessTokenKey, out string accessTokenSecret) 
         {
+            if (String.IsNullOrWhiteSpace(RequestToken[0]) || String.IsNullOrWhiteSpace(RequestToken[0]))
+                throw new InvalidOperationException("There is not a request token to authorize");
+
             return GetAccessToken(RequestToken[0], RequestToken[1], out accessTokenKey, out accessTokenSecret);
         }
         /// <summary>
@@ -233,6 +260,11 @@ namespace UrbanRivalsApiManager
         /// <exception cref="ArgumentNullException"><paramref name="requestTokenKey"/> or <paramref name="requestTokenSecret"/> are null, empty or whitespace</exception>
         public HttpStatusCode GetAccessToken(string requestTokenKey, string requestTokenSecret, out string accessTokenKey, out string accessTokenSecret)
         {
+            if (String.IsNullOrWhiteSpace(requestTokenKey))
+                throw new ArgumentNullException("requestTokenKey");
+            if (String.IsNullOrWhiteSpace(requestTokenSecret))
+                throw new ArgumentNullException("requestTokenSecret");
+
             accessTokenKey = "";
             accessTokenSecret = "";
 

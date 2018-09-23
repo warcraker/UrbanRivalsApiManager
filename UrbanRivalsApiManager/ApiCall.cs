@@ -260,7 +260,9 @@ namespace UrbanRivalsApiManager
         /// <exception cref="ArgumentException">The parameter already exists on the compulsory parameters list</exception>
         protected void AddCompulsoryParameter(string parameterName)
         {
-            if (CompulsoryParameters.Contains(parameter))
+            if (String.IsNullOrWhiteSpace(parameterName))
+                throw new ArgumentNullException("parameterName");
+            if (CompulsoryParameters.Contains(parameterName))
                 throw new ArgumentException("The parameter already exists on the compulsory parameters list", "parameter");
 
             CompulsoryParameters.Add(parameterName);
