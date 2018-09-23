@@ -9,38 +9,20 @@ using OAuth;
 namespace UrbanRivalsApiManager
 {
     /// <summary>
-    /// Urls used for API access.
-    /// </summary>
-    internal static class ApiURLs
-    {
-        /// <summary>
-        /// Used to retrieve a request token.
-        /// </summary>
-        public static readonly string RequestToken = @"http://www.urban-rivals.com/api/auth/request_token.php";
-        /// <summary>
-        /// Used to authorize a request token.
-        /// </summary>
-        public static readonly string AuthorizeToken = @"http://www.urban-rivals.com/api/auth/authorize.php";
-        /// <summary>
-        /// Used to retrieve an access token.
-        /// </summary>
-        public static readonly string AccessToken = @"http://www.urban-rivals.com/api/auth/access_token.php";
-        /// <summary>
-        /// Target of the API calls.
-        /// </summary>
-        public static readonly string Server = @"http://www.urban-rivals.com/api/";
-        /// <summary>
-        /// This will be called after the user authorizes access.
-        /// </summary>
-        public static readonly string Callback = @"http://www.urban-rivals.com/";
-    }
-
-    /// <summary>
     /// Manages authentication through OAuth with Urban Rivals and allows to send requests.
     /// </summary>
     /// <remarks> The OAuth protocol (Consumer > Request > AuthorizeRequest > Access) must be followed in order. Allows the use of a valid access token to avoid session re-authentication.</remarks>
     public class ApiManager
     {
+        private static class ApiURLs
+        {
+            public static readonly string RequestToken = @"http://www.urban-rivals.com/api/auth/request_token.php";
+            public static readonly string AuthorizeToken = @"http://www.urban-rivals.com/api/auth/authorize.php";
+            public static readonly string AccessToken = @"http://www.urban-rivals.com/api/auth/access_token.php";
+            public static readonly string Server = @"http://www.urban-rivals.com/api/";
+            public static readonly string Callback = @"http://www.urban-rivals.com/";
+        }
+
         /// <summary>
         /// Extracts tokens from the string sent by the server.
         /// </summary>
