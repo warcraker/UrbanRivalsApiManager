@@ -30,7 +30,7 @@
         <StackPanel Grid.Column="0" Margin="0,0,5,0">
             <TextBlock>
                 <Bold>1. Get Consumer Token.</Bold><LineBreak />
-                Go to <Hyperlink NavigateUri="http://www.urban-rivals.com/api/developer/" RequestNavigate="Hyperlink_RequestNavigate">www.urban-rivals.com/api/developer/</Hyperlink> and fill the form at the end. Fill the Accesses required with the desired values. You can ask for multiple Accesses. Check the documentation before. Store in a safe place the keys that they will give you, and write them here:
+                Go to <Hyperlink NavigateUri="http://www.urban-rivals.com/api/developer/" RequestNavigate="onHyperlinkClicked">www.urban-rivals.com/api/developer/</Hyperlink> and fill the form at the end. Fill the Accesses required with the desired values. You can ask for multiple Accesses. Check the documentation before. Store in a safe place the keys that they will give you, and write them here:
             </TextBlock>
             <DockPanel>
                 <TextBlock>Key:</TextBlock>
@@ -59,9 +59,9 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0">URL:</TextBlock>
                 <TextBox Grid.Column="1" x:Name="AuthorizeURL"  Margin="5,0"/>
-                <Button Grid.Column="2" Click="CopyURL">Copy URL</Button>
+                <Button Grid.Column="2" Click="onCopyUrlButtonClicked">Copy URL</Button>
                 <TextBlock Grid.Column="3" Margin="5,2">or</TextBlock>
-                <Button Grid.Column="4" Click="GoToUrl">Go to URL</Button>
+                <Button Grid.Column="4" Click="onNavigateToUrlButtonClicked">Go to URL</Button>
             </Grid>
             <TextBlock TextDecorations="{x:Null}" Foreground="#FF182BA8" FontWeight="Bold" FontSize="11">
                 Hit [Authorize] on the page that will be shown.
@@ -94,7 +94,7 @@
             </TextBlock>
             <Border>
                 <StackPanel>
-                    <Button Click="GetClans">Get the names of all the clans</Button>
+                    <Button Click="onGetClansButtonClicked">Get the names of all the clans</Button>
                 </StackPanel>
             </Border>
 
@@ -103,7 +103,7 @@
             </TextBlock>
             <Border>
                 <StackPanel>
-                    <Button Click="GetPlayerNameAndLevel">Get the player name and level</Button>
+                    <Button Click="onGetPlayerNameAndLevelButtonClicked">Get the player name and level</Button>
                 </StackPanel>
             </Border>
 
@@ -116,7 +116,7 @@
                     <RadioButton x:Name="en" IsChecked="True">English</RadioButton>
                     <RadioButton x:Name="es">Español</RadioButton>
                     <RadioButton x:Name="fr">Français</RadioButton>
-                    <Button Click="GetTipsOnLanguage">Get Tips</Button>
+                    <Button Click="onGetTipsButtonClicked">Get Tips</Button>
                 </StackPanel>
             </Border>
 
@@ -130,7 +130,7 @@
                         <TextBlock>Message:</TextBlock>
                         <TextBox x:Name="SendMessage" IsReadOnly="False" />
                     </DockPanel>
-                    <Button Click="SendMessageToGuild">
+                    <Button Click="onSendMessageToGuildButtonClicked">
                         Send Message
                     </Button>
                 </StackPanel>
