@@ -157,6 +157,7 @@ namespace UrbanRivalsApiManager
                         match = PRV_TOKENS_FROM_SERVER_RESPONSE_REGEX.Match(responseString);
                         this.accessToken[0] = match.Groups["token"].Value;
                         this.accessToken[1] = match.Groups["token_secret"].Value;
+                        this.accessTokenObtained = true;
                         accessTokenKey = this.accessToken[0];
                         accessTokenSecret = this.accessToken[1];
                     }
