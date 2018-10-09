@@ -11,11 +11,11 @@ namespace UrbanRivalsApiManager
     public class ApiManager
     {
         private static readonly Regex PRV_TOKENS_FROM_SERVER_RESPONSE_REGEX = new Regex(@"oauth_token=(?<token>[0-9a-f]+)&oauth_token_secret=(?<token_secret>[0-9a-f]+)");
-        private static readonly Uri PRV_AUTHORIZE_TOKEN_URI = new Uri(@"http://www.urban-rivals.com/api/auth/authorize.php");
-        private const string PRV_REQUEST_TOKEN_URL = @"http://www.urban-rivals.com/api/auth/request_token.php";
-        private const string PRV_ACCESS_TOKEN_URL = @"http://www.urban-rivals.com/api/auth/access_token.php";
-        private const string PRV_SERVER_URL = @"http://www.urban-rivals.com/api/";
-        private const string PRV_CALLBACK_URL = @"http://www.urban-rivals.com/";
+        private static readonly Uri PRV_AUTHORIZE_TOKEN_URI = new Uri(@"https://www.urban-rivals.com/api/auth/authorize.php");
+        private const string PRV_REQUEST_TOKEN_URL = @"https://www.urban-rivals.com/api/auth/request_token.php";
+        private const string PRV_ACCESS_TOKEN_URL = @"https://www.urban-rivals.com/api/auth/access_token.php";
+        private const string PRV_SERVER_URL = @"https://www.urban-rivals.com/api/";
+        private const string PRV_CALLBACK_URL = @"https://www.urban-rivals.com/";
         private const string PRV_HTTP_POST_METHOD = "POST";
 
         private readonly OAuthBase oAuthBase;
