@@ -14,23 +14,16 @@ namespace UrbanRivalsApiManager
         internal int ApiCallsCount { get { return CallsQueue.Count; } }
 
         /// <summary>
-        /// Creates an new empty <see cref="ApiRequest"/>.
-        /// </summary>
-        public ApiRequest() 
-        {
-            CallsQueue = new Queue<ApiCall>();
-        }
-        /// <summary>
         /// Creates a new <see cref="ApiRequest"/> with one <see cref="ApiCall"/> enqueued.
         /// </summary>
         /// <param name="apiCall">Call to be enqueued.</param>
         /// <exception cref="ArgumentNullException"><paramref name="apiCall"/> is <code>null</code></exception>
         public ApiRequest(ApiCall apiCall)
-            : this()
         {
             if (apiCall == null)
                 throw new ArgumentNullException("apiCall");
 
+            this.CallsQueue = new Queue<ApiCall>();
             this.EnqueueApiCall(apiCall);
         }
         /// <summary>
