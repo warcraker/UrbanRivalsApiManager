@@ -1,7 +1,7 @@
 ﻿<Window x:Class="UrbanRivalsApiManager.Test.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="ApiManager Test" Height="550" Width="700" Icon="Resources/pillz_vertical.png">
+        Title="ApiManager Test" Height="440" Width="700" Icon="Resources/pillz_vertical.png">
 
     <Window.Resources>
         <Style TargetType="TextBlock">
@@ -34,28 +34,20 @@
             </TextBlock>
             <DockPanel>
                 <TextBlock>Key:</TextBlock>
-                <TextBox x:Name="ConsumerKey" TextChanged="Clear" IsReadOnly="False" />
+                <TextBox x:Name="ConsumerKey" TextChanged="onConsumerTokenKeyTextChanged" IsReadOnly="False" />
             </DockPanel>
             <DockPanel>
                 <TextBlock>Secret:</TextBlock>
-                <TextBox x:Name="ConsumerSecret" TextChanged="Clear" IsReadOnly="False" />
+                <TextBox x:Name="ConsumerSecret" TextChanged="onConsumerTokenSecretTextChanged" IsReadOnly="False" />
             </DockPanel>
+            <DockPanel/>
+            <DockPanel/>
             <TextBlock Style="{StaticResource UpperMargin}">
-                <Bold>2. Get Request Token</Bold><LineBreak />
-                <Button Click="GetRequestToken">Get a Request Token</Button>
-            </TextBlock>
-            <DockPanel>
-                <TextBlock>Key:</TextBlock>
-                <TextBox x:Name="RequestKey" />
-            </DockPanel>
-            <DockPanel>
-                <TextBlock>Secret:</TextBlock>
-                <TextBox x:Name="RequestSecret" />
-            </DockPanel>
-            <TextBlock Style="{StaticResource UpperMargin}">
-                <Bold>3. Authorize Request Token</Bold><LineBreak />
-                Login into Urban Rivals as usual. Then go to the URL that you will get below.<LineBreak />
-                <Button Click="AuthorizeRequestToken">Get URL to Authorize Request Token</Button>
+                <Run FontWeight="Bold" Text="2. Authorize Request Token"/><LineBreak/>
+                <Run Text="Login into Urban Rivals as usual. Then go to the URL that you will get below."/><LineBreak/>
+                <InlineUIContainer>
+                    <Button Click="onGetUrlButtonClicked" Content="Get URL to Authorize Request Token"/>
+                </InlineUIContainer>
             </TextBlock>
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -68,17 +60,18 @@
                 <TextBlock Grid.Column="0">URL:</TextBlock>
                 <TextBox Grid.Column="1" x:Name="AuthorizeURL"  Margin="5,0"/>
                 <Button Grid.Column="2" Click="CopyURL">Copy URL</Button>
-                <TextBlock Grid.Column="3" Margin="5,0">or</TextBlock>
+                <TextBlock Grid.Column="3" Margin="5,2">or</TextBlock>
                 <Button Grid.Column="4" Click="GoToUrl">Go to URL</Button>
             </Grid>
-            <TextBlock>
-                Hit Authorize on the page that will be shown.
+            <TextBlock TextDecorations="{x:Null}" Foreground="#FF182BA8" FontWeight="Bold" FontSize="11">
+                Hit [Authorize] on the page that will be shown.
             </TextBlock>
             <TextBlock Style="{StaticResource UpperMargin}">
-                <Bold>4. Get Access Token</Bold><LineBreak />
-                Once you have authorized the Request Token, hit here to get the Access Token.<LineBreak />
-                <Button Click="GetAccessToken">Get Access Token</Button>
-            </TextBlock>
+                <Run FontWeight="Bold" Text="3. Get Access Token"/><LineBreak/>
+                <Run Text="Once you have authorized the Request Token, hit here to get the Access Token."/><LineBreak/>
+                <InlineUIContainer>
+                    <Button Click="onGetAccessTokenButtonClicked" Content="Get Access Token"/>
+                </InlineUIContainer></TextBlock>
             <DockPanel>
                 <TextBlock>Key:</TextBlock>
                 <TextBox x:Name="AccessKey" />
@@ -91,9 +84,9 @@
 
         <StackPanel Grid.Column="1">
             <TextBlock>
-                <Bold>5. Have fun making API Calls with the Access Token</Bold>
-                <LineBreak />Here are some examples of things you can do with the API. 
-                <LineBreak /><Underline>You must use only allowed calls:</Underline>
+                <Run FontWeight="Bold" Text="4. Have fun making API Calls with the Access Token"/><LineBreak/>
+                <Run Text="Here are some examples of things you can do with the API."/><LineBreak/>
+                <Underline><Run Text="You must use only allowed calls:"/></Underline>
             </TextBlock>
 
             <TextBlock Style="{StaticResource UpperMargin}">

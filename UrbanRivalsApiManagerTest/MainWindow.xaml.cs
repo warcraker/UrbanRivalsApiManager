@@ -19,9 +19,6 @@ using Procurios.Public;
 
 namespace UrbanRivalsApiManager.Test
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         ApiManager manager;
@@ -31,79 +28,114 @@ namespace UrbanRivalsApiManager.Test
         {
             InitializeComponent();
         }
-        
-        // --- OAuth Protocol: Sesion Authentication ---
-        private void GetRequestToken(object sender, RoutedEventArgs e)
+
+        private void onConsumerTokenKeyTextChanged(object sender, TextChangedEventArgs e)
         {
-            if ((String.IsNullOrWhiteSpace(ConsumerKey.Text) 
-                || String.IsNullOrWhiteSpace(ConsumerSecret.Text)))
+            prv_clearFields();
+            prv_initializeManager();
+        }
+        private void onConsumerTokenSecretTextChanged(object sender, TextChangedEventArgs e)
+        {
+            prv_clearFields();
+            prv_initializeManager();
+        }
+        private void onGetUrlButtonClicked(object sender, RoutedEventArgs e)
+        {
+            if (this.manager == null)
             {
                 MessageBox.Show("Finish step 1 before this");
-                return;
             }
-
-            manager = new ApiManager(ConsumerKey.Text, ConsumerSecret.Text);
-            // Once you finish steps 1 to 4, you can store the Access Token and use this overload to avoid repeating the entire process
-            // manager = new ApiManager(consumerKey, consumerSecret, accessTokenKey, accessTokenSecret);
-
-            string requestKey, requestSecret;
-            HttpStatusCode status = manager.GetRequestToken(out requestKey, out requestSecret);
-            if (status != HttpStatusCode.OK)
+            else
             {
-                MessageBox.Show("The Consumer Token provided on step 1 is invalid");
-                return;
+                HttpStatusCode statusCode;
+                string url;
+
+                statusCode = this.manager.GetAuthorizeURL(out url);
+                switch (statusCode)
+                {
+                    case HttpStatusCode.OK:
+                    {
+                        this.AuthorizeURL.Text = url;
+                        break;
+                    }
+                    default:
+                    {
+                        MessageBox.Show($"Something happened while asking the server for the authorize token. Check if the consumer token is correctly written. Error code: {statusCode}");
+                        break;
+                    }
+                }
             }
-            
-            RequestKey.Text = requestKey;
-            RequestSecret.Text = requestSecret;
         }
-        private void AuthorizeRequestToken(object sender, RoutedEventArgs e)
+        private void onGetAccessTokenButtonClicked(object sender, RoutedEventArgs e)
         {
-            if (String.IsNullOrWhiteSpace(RequestKey.Text))
+            string url;
+
+            url = this.AuthorizeURL.Text;
+            if (String.IsNullOrWhiteSpace(url))
             {
                 MessageBox.Show("Finish step 2 before this");
-                return;
             }
-            AuthorizeURL.Text = manager.GetAuthorizeRequestTokenURL();
+            else
+            {
+                HttpStatusCode statusCode;
+                string accessKey;
+                string accessSecret;
+                
+                statusCode = this.manager.GetAccessToken(out accessKey, out accessSecret);
+                switch (statusCode)
+                {
+                    case HttpStatusCode.OK:
+                        this.AccessKey.Text = accessKey;
+                        this.AccessSecret.Text = accessSecret;
+                        this.isFullyAuthenticated = true;
+                        break;
+                    default:
+                        MessageBox.Show($"Something happened while asking the server for the access token. Make sure that you log into urban rivals BEFORE using the url provided on the previous step, and that the authorize button is clicked. Error code: {statusCode}");
+                        break;
+                }
+            }
         }
-        private void GetAccessToken(object sender, RoutedEventArgs e)
+
+        private void prv_clearFields()
         {
-            if (String.IsNullOrWhiteSpace(AuthorizeURL.Text))
+            AuthorizeURL.Text = "";
+            AccessKey.Text = "";
+            AccessSecret.Text = "";
+            SendMessage.Text = "";
+        }
+        private void prv_initializeManager()
+        {
+            string consumerKey;
+            string consumerSecret;
+
+            consumerKey = this.ConsumerKey.Text;
+            consumerSecret = this.ConsumerSecret.Text;
+            if (String.IsNullOrWhiteSpace(consumerKey) == false && String.IsNullOrWhiteSpace(consumerSecret) == false)
+            {
+                ApiManager manager;
+
+                manager = ApiManager.CreateApiManager(consumerKey, consumerSecret);
+                this.manager = manager;
+            }
+            this.isFullyAuthenticated = false;
+        }
+        
+
+        private void GetClans(object sender, RoutedEventArgs e)
+        {
+            if (!isFullyAuthenticated)
             {
                 MessageBox.Show("Finish step 3 before this");
                 return;
             }
 
-            string accessKey, accessSecret;
-            HttpStatusCode status = manager.GetAccessToken(out accessKey, out accessSecret);
-            if (status != HttpStatusCode.OK)
-            {
-                MessageBox.Show("Finish step 3 before this. You need to log into Urban Rivals before going into the URL provided, and you need to click on Authorize");
-                return;
-            }
-            
-            AccessKey.Text = accessKey;
-            AccessSecret.Text = accessSecret;
-            isFullyAuthenticated = true;
-        }
-
-        // --- API Requests ---
-        private void GetClans(object sender, RoutedEventArgs e)
-        {
-            if (!isFullyAuthenticated)
-            {
-                MessageBox.Show("Finish step 4 before this");
-                return;
-            }
-
             var getClansCall = new ApiCallList.Characters.GetClans();
-            // We are only interested in names, so we can make this lighter using ItemsFilter
             getClansCall.ItemsFilter = new List<string>() { "name" };
+            var request = new ApiRequest(getClansCall);
             string responseString;
-            HttpStatusCode status = manager.SendRequest(getClansCall, out responseString);
+            HttpStatusCode status = manager.SendRequest(request, out responseString);
             if (status != HttpStatusCode.OK)
             {
-                // Use in your app only ApiCall's that you have access to, in order to avoid this
                 if (status == HttpStatusCode.MethodNotAllowed)
                 {
                     MessageBox.Show("You don't have Public access");
@@ -116,20 +148,12 @@ namespace UrbanRivalsApiManager.Test
                 }
             }
 
-            // We can parse the response into a dynamic object for confortable using the Procurios.User.JsonDecoder library included
             dynamic response = JsonDecoder.Decode(responseString);
-
-            /* A server response decoded like that has this structure
-             * [NameOfTheCall][ItemsOrContext][Values]
-             * NameOfTheCall is on the ApiCall.Call field
-             * ItemsOrContext is either "items" or "context"
-             * Values are the interesting results. Can be empty, contain a single value, recurse into more fields, etc.
-             */
 
             StringBuilder builder = new StringBuilder("These are the available clans: ");
             foreach (dynamic value in response[getClansCall.Call]["items"])
                 builder.AppendFormat("{0}, ", value["name"].ToString());
-            builder.Remove(builder.Length - 2, 2); // Remove the trailing ", "
+            builder.Remove(builder.Length - 2, 2);
 
             MessageBox.Show(builder.ToString());
         }
@@ -137,16 +161,17 @@ namespace UrbanRivalsApiManager.Test
         {
             if (!isFullyAuthenticated)
             {
-                MessageBox.Show("Finish step 4 before this");
+                MessageBox.Show("Finish step 3 before this");
                 return;
             }
 
             var getPlayerName = new ApiCallList.General.GetPlayer();
-            // We can get as granular as we want with the filters, as long as we know what fields the server is gona serve us
-            getPlayerName.ContextFilter = new List<string>() { "player.name", "player.level" }; // We use the dot (.) syntax here
+            getPlayerName.ContextFilter = new List<string>() { "player.name", "player.level" }; 
 
             string responseString;
-            HttpStatusCode status = manager.SendRequest(getPlayerName, out responseString);
+            var request = new ApiRequest(getPlayerName);
+            HttpStatusCode status = manager.SendRequest(request, out responseString);
+
             if (status != HttpStatusCode.OK)
             {
                 if (status == HttpStatusCode.MethodNotAllowed)
@@ -181,21 +206,17 @@ namespace UrbanRivalsApiManager.Test
             else if ((bool)fr.IsChecked)
                 language = "fr";
 
-            // This call have a parameter, and is compulsory, so we put it on the constructor
             var setLanguageCall = new ApiCallList.Players.SetLanguages(new List<string>() { language });
 
-            // This is the second call
             var getTipsCall = new ApiCallList.General.GetTips();
 
-            // Now we have 2 ApiCall's, one to set the language, and other to get the tips. We can use ApiRequest to send multiple ApiCall's
             var request = new ApiRequest();
 
-            // We must add the calls in order
             request.EnqueueApiCall(setLanguageCall);
             request.EnqueueApiCall(getTipsCall);
 
             string responseString;
-            HttpStatusCode status = manager.SendRequest(request, out responseString); // We use ApiRequest here
+            HttpStatusCode status = manager.SendRequest(request, out responseString); 
             if (status != HttpStatusCode.OK)
             {
                 if (status == HttpStatusCode.MethodNotAllowed)
@@ -212,7 +233,6 @@ namespace UrbanRivalsApiManager.Test
             dynamic response = JsonDecoder.Decode(responseString);
 
             StringBuilder builder = new StringBuilder();
-            // We are only interested in the output of the second call. We don't check if the first call failed. Check the oficial documentation to know what would happen
             foreach (string tip in response[getTipsCall.Call]["items"])
                 builder.AppendLine(tip);
 
@@ -234,14 +254,13 @@ namespace UrbanRivalsApiManager.Test
 
             var sendMessageCall = new ApiCallList.Guilds.SendGuildMsg(SendMessage.Text);
 
-            // To set a parameter, you can use any of these variants
             sendMessageCall.SetParamenterValue("msg", SendMessage.Text);
             sendMessageCall.TrySetParamenterValue("msg", SendMessage.Text);
             sendMessageCall.msg = SendMessage.Text;
 
-            // Note: I don't have Action access on my keys, so I can't check if the following code works :(
             string responseString;
-            HttpStatusCode status = manager.SendRequest(sendMessageCall, out responseString); // We use ApiRequest here
+            var request = new ApiRequest(sendMessageCall);
+            HttpStatusCode status = manager.SendRequest(request, out responseString); 
             if (status != HttpStatusCode.OK)
             {
                 if (status == HttpStatusCode.MethodNotAllowed)
@@ -256,7 +275,6 @@ namespace UrbanRivalsApiManager.Test
                 }
             }
 
-            // Here we could use the response to check if there was any error through the context
             dynamic response = JsonDecoder.Decode(responseString);
             string error = response[sendMessageCall.Call]["context"]["error"].ToString();
             if (error == "0" || error == "false")
@@ -265,17 +283,6 @@ namespace UrbanRivalsApiManager.Test
                 MessageBox.Show(String.Format("The message couldn't be sent"));
         }        
 
-        private void Clear(object sender, TextChangedEventArgs e)
-        {
-            manager = null;
-            isFullyAuthenticated = false;
-            RequestKey.Text = "";
-            RequestSecret.Text = "";
-            AuthorizeURL.Text = "";
-            AccessKey.Text = "";
-            AccessSecret.Text = "";
-            SendMessage.Text = "";
-        }
         private void CopyURL(object sender, RoutedEventArgs e)
         {
             if (AuthorizeURL.Text == "")

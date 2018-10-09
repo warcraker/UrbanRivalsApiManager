@@ -282,6 +282,5 @@ namespace UrbanRivalsApiManager
 
             Parameters.Add(parameterName, EmptyValue);
         }
-
     }
 }

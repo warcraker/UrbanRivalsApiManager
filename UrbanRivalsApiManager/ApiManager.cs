@@ -1,353 +1,248 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
-
 using ExtApi.Engine;
 using OAuth;
 
 namespace UrbanRivalsApiManager
 {
-    /// <summary>
-    /// Manages authentication through OAuth with Urban Rivals and allows to send requests.
-    /// </summary>
-    /// <remarks> The OAuth protocol (Consumer > Request > AuthorizeRequest > Access) must be followed in order. Allows the use of a valid access token to avoid session re-authentication.</remarks>
     public class ApiManager
     {
-        private static class ApiURLs
+        private static readonly Regex PRV_TOKENS_FROM_SERVER_RESPONSE_REGEX = new Regex(@"oauth_token=(?<token>[0-9a-f]+)&oauth_token_secret=(?<token_secret>[0-9a-f]+)");
+        private static readonly Uri PRV_AUTHORIZE_TOKEN_URI = new Uri(@"http://www.urban-rivals.com/api/auth/authorize.php");
+        private const string PRV_REQUEST_TOKEN_URL = @"http://www.urban-rivals.com/api/auth/request_token.php";
+        private const string PRV_ACCESS_TOKEN_URL = @"http://www.urban-rivals.com/api/auth/access_token.php";
+        private const string PRV_SERVER_URL = @"http://www.urban-rivals.com/api/";
+        private const string PRV_CALLBACK_URL = @"http://www.urban-rivals.com/";
+        private const string PRV_HTTP_POST_METHOD = "POST";
+
+        private readonly OAuthBase oAuthBase;
+        private readonly ApiRunner apiRunner;
+        private readonly string[] consumerToken;
+        private readonly string[] requestToken;
+        private readonly string[] accessToken;
+        private bool urlObtained;
+        private bool accessTokenObtained;
+
+        public static ApiManager CreateApiManager(string consumerKey, string consumerSecret)
         {
-            public static readonly string RequestToken = @"http://www.urban-rivals.com/api/auth/request_token.php";
-            public static readonly string AuthorizeToken = @"http://www.urban-rivals.com/api/auth/authorize.php";
-            public static readonly string AccessToken = @"http://www.urban-rivals.com/api/auth/access_token.php";
-            public static readonly string Server = @"http://www.urban-rivals.com/api/";
-            public static readonly string Callback = @"http://www.urban-rivals.com/";
+            ApiManager apiManager;
+
+            apiManager = new ApiManager(consumerKey, consumerSecret);
+
+            return apiManager;
         }
+        public static ApiManager CreateApiManagerReadyForRequests(string consumerKey, string consumerSecret, string accessTokenKey, string accessTokenSecret)
+        {
+            ApiManager apiManager;
 
-        /// <summary>
-        /// Extracts tokens from the string sent by the server.
-        /// </summary>
-        private static readonly Regex TokensFromServerResponseRegex = new Regex(@"oauth_token=(?<token>[0-9a-f]+)&oauth_token_secret=(?<token_secret>[0-9a-f]+)");
+            if (String.IsNullOrWhiteSpace(accessTokenKey))
+                throw new ArgumentNullException(nameof(accessTokenKey));
+            if (String.IsNullOrWhiteSpace(accessTokenSecret))
+                throw new ArgumentNullException(nameof(accessTokenSecret));
 
-        /// <summary>
-        /// Used on the authorization part of the protocol.
-        /// </summary>
-        private OAuthBase OAuthBase;
-        /// <summary>
-        /// Used on the API calls.
-        /// </summary>
-        private ApiRunner ApiRunner;
+            apiManager = new ApiManager(consumerKey, consumerSecret);
+            apiManager.accessToken[0] = accessTokenKey;
+            apiManager.accessToken[1] = accessTokenSecret;
+            apiManager.accessTokenObtained = true;
 
-        /// <summary>
-        /// Stores the last consumer token used.
-        /// </summary>
-        private string[] ConsumerToken = new string[2];
-        /// <summary>
-        /// Stores the last request token used.
-        /// </summary>
-        private string[] RequestToken = new string[2];
-        /// <summary>
-        /// Stores the last access token used.
-        /// </summary>
-        private string[] AccessToken = new string[2];
-
-        /// <summary>
-        /// Creates a new ApiManager with the specified consumer, access and request tokens.
-        /// </summary>
-        /// <param name="consumerKey">Consumer token public part.</param>
-        /// <param name="consumerSecret">Consumer token secret part.</param>
-        /// <param name="accessTokenKey">Access token public part.</param>
-        /// <param name="accessTokenSecret">Access token secret part.</param>
-        /// <param name="requestTokenKey">Request token public part.</param>
-        /// <param name="requestTokenSecret">Request token secret part.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="consumerKey"/> or <paramref name="consumerSecret"/> are null, empty or whitespace</exception>
-        public ApiManager(string consumerKey, string consumerSecret, string accessTokenKey, string accessTokenSecret, string requestTokenKey, string requestTokenSecret)
+            return apiManager;
+        }
+        private ApiManager(string consumerKey, string consumerSecret)
         {
             if (String.IsNullOrWhiteSpace(consumerKey))
-                throw new ArgumentNullException("consumerKey");
+                throw new ArgumentNullException(nameof(consumerKey));
             if (String.IsNullOrWhiteSpace(consumerSecret))
-                throw new ArgumentNullException("consumerSecret");
+                throw new ArgumentNullException(nameof(consumerSecret));
 
-            ApiRunner = new ApiRunner();
-            OAuthBase = new OAuthBase();
+            this.apiRunner = new ApiRunner();
+            this.oAuthBase = new OAuthBase();
 
-            ConsumerToken[0] = consumerKey;
-            ConsumerToken[1] = consumerSecret;
-            AccessToken[0] = accessTokenKey;
-            AccessToken[1] = accessTokenSecret;
-            RequestToken[0] = requestTokenKey;
-            RequestToken[1] = requestTokenSecret;
+            this.consumerToken = prv_initTokenPair(consumerKey, consumerSecret);
+            this.requestToken = prv_initTokenPair("", "");
+            this.accessToken = prv_initTokenPair("", "");
+
+            this.urlObtained = false;
+            this.accessTokenObtained = false;
         }
-        /// <summary>
-        /// Creates a new ApiManager with the specified consumer and access tokens.
-        /// </summary>
-        /// <param name="consumerKey">Consumer token public part.</param>
-        /// <param name="consumerSecret">Consumer token secret part.</param>
-        /// <param name="accessTokenKey">Access token public part.</param>
-        /// <param name="accessTokenSecret">Access token secret part.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="consumerKey"/> or <paramref name="consumerSecret"/> are null, empty or whitespace</exception>
-        public ApiManager(string consumerKey, string consumerSecret, string accessTokenKey, string accessTokenSecret)
-            : this (consumerKey, consumerSecret, accessTokenKey, accessTokenSecret, "", "")
+
+        public HttpStatusCode GetAuthorizeURL(out string authorizeUrl)
         {
-            if (String.IsNullOrWhiteSpace(consumerKey))
-                throw new ArgumentNullException("consumerKey");
-            if (String.IsNullOrWhiteSpace(consumerSecret))
-                throw new ArgumentNullException("consumerSecret");
+            HttpStatusCode httpStatusCode;
+            ExtApiCallResult callResponse;
+            List<ApiParameter> emptyParametersList;
 
-            ApiRunner = new ApiRunner();
-            OAuthBase = new OAuthBase();
+            emptyParametersList = new List<ApiParameter>();
+            callResponse = this.apiRunner.ExecuteOAuthApiCall(
+                QueryType.GetRequestToken, PRV_REQUEST_TOKEN_URL, emptyParametersList, RequestMethod.Post, 
+                this.consumerToken[0], this.consumerToken[1], "", "");
+            httpStatusCode = callResponse.StatusCode;
+            switch (httpStatusCode)
+            {
+                case HttpStatusCode.OK:
+                {
+                    string responseString;
+                    bool isMatch;
 
-            ConsumerToken[0] = consumerKey;
-            ConsumerToken[1] = consumerSecret;
-            AccessToken[0] = accessTokenKey;
-            AccessToken[1] = accessTokenSecret;
+                    responseString = prv_getStringFromResponse(callResponse);
+                    isMatch = PRV_TOKENS_FROM_SERVER_RESPONSE_REGEX.IsMatch(responseString);
+                    if (isMatch == true)
+                    {
+                        Match responseMatch;
+                        string timestamp;
+                        string nonce;
+                        string signature;
+                        string normalizedUrl;
+                        string normalizedRequestParameters;
+
+                        responseMatch = PRV_TOKENS_FROM_SERVER_RESPONSE_REGEX.Match(responseString);
+                        this.requestToken[0] = responseMatch.Groups["token"].Value;
+                        this.requestToken[1] = responseMatch.Groups["token_secret"].Value;
+                        timestamp = this.oAuthBase.GenerateTimeStamp();
+                        nonce = this.oAuthBase.GenerateNonce();
+                        signature = this.oAuthBase.GenerateSignature(PRV_AUTHORIZE_TOKEN_URI,
+                            this.consumerToken[0], this.consumerToken[1], this.requestToken[0], this.requestToken[1],
+                            PRV_HTTP_POST_METHOD, timestamp, nonce, out normalizedUrl, out normalizedRequestParameters);
+                        authorizeUrl = $"{normalizedUrl}?{normalizedRequestParameters}&oauth_signature={signature}&oauth_callback={PRV_CALLBACK_URL}";
+                        this.urlObtained = true;
+                    }
+                    else
+                    {
+                        httpStatusCode = (HttpStatusCode)418; // :)
+                        authorizeUrl = "";
+                        this.urlObtained = false;
+                    }
+                    break;
+                }
+                default:
+                {
+                    authorizeUrl = "";
+                    this.urlObtained = false;
+                    break;
+                }
+            }
+
+            return httpStatusCode;
         }
-        /// <summary>
-        /// Creates a new ApiManager with the specified consumer token.
-        /// </summary>
-        /// <param name="consumerKey">Consumer token public part.</param>
-        /// <param name="consumerSecret">Consumer token secret part.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="consumerKey"/> or <paramref name="consumerSecret"/> are null, empty or whitespace</exception>
-        public ApiManager(string consumerKey, string consumerSecret)
-            : this (consumerKey, consumerSecret, "", "", "", "") { }
-        private ApiManager() { }
-
-        /// <summary>
-        /// Uses the stored consumer token to get from the server a request token that will be stored internally.
-        /// </summary>
-        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
-        public HttpStatusCode GetRequestToken()
+        public HttpStatusCode GetAccessToken(out string accessTokenKey, out string accessTokenSecret)
         {
-            string dummy;
-            return GetRequestToken(out dummy, out dummy);
+            HttpStatusCode httpStatusCode;
+            ExtApiCallResult callResponse;
+            List<ApiParameter> emptyParametersList;
+
+            if (this.urlObtained == false)
+                throw new InvalidOperationException($"The user must access to the URL provided by {nameof(GetAuthorizeURL)} and click on [Authorize App] before running this method");
+
+            emptyParametersList = new List<ApiParameter>();
+            callResponse = this.apiRunner.ExecuteOAuthApiCall(
+                QueryType.GetAccessToken, PRV_ACCESS_TOKEN_URL, emptyParametersList, RequestMethod.Post, 
+                this.consumerToken[0], this.consumerToken[1], this.requestToken[0], this.requestToken[1]);
+            httpStatusCode = callResponse.StatusCode;
+
+            switch (httpStatusCode)
+            {
+                case HttpStatusCode.OK:
+                {
+                    string responseString;
+                    bool isMatch;
+
+                    responseString = prv_getStringFromResponse(callResponse);
+                    isMatch = PRV_TOKENS_FROM_SERVER_RESPONSE_REGEX.IsMatch(responseString);
+                    if (isMatch == true)
+                    {
+                        Match match;
+
+                        match = PRV_TOKENS_FROM_SERVER_RESPONSE_REGEX.Match(responseString);
+                        this.accessToken[0] = match.Groups["token"].Value;
+                        this.accessToken[1] = match.Groups["token_secret"].Value;
+                        accessTokenKey = this.accessToken[0];
+                        accessTokenSecret = this.accessToken[1];
+                    }
+                    else
+                    {
+                        httpStatusCode = (HttpStatusCode)418;
+                        accessTokenKey = "";
+                        accessTokenSecret = "";
+                    }
+                    break;
+                }
+                default:
+                {
+                    accessTokenKey = "";
+                    accessTokenSecret = "";
+                    break;
+                }
+            }
+
+            return httpStatusCode;
         }
-        /// <summary>
-        /// Uses the stored consumer token to get from the server a request token that will be stored internally.
-        /// </summary>
-        /// <param name="requestTokenKey">Request token public part.</param>
-        /// <param name="requestTokenSecret">Request token secret part.</param>
-        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
-        public HttpStatusCode GetRequestToken(out string requestTokenKey, out string requestTokenSecret)
-        {
-            requestTokenKey = "";
-            requestTokenSecret = "";
-
-            var callResult = ApiRunner.ExecuteOAuthApiCall(
-                QueryType.GetRequestToken, ApiURLs.RequestToken, new List<ApiParameter>(), RequestMethod.Post, ConsumerToken[0], ConsumerToken[1], "", "");
-
-            if (callResult.StatusCode != HttpStatusCode.OK)
-                return callResult.StatusCode;
-
-            var responseBytes = new byte[callResult.ResponseStream.Length];
-            callResult.ResponseStream.Read(responseBytes, 0, (int)callResult.ResponseStream.Length);
-            string responseString = System.Text.Encoding.UTF8.GetString(responseBytes);
-            var match = TokensFromServerResponseRegex.Match(responseString);
-            RequestToken[0] = match.Groups["token"].Value;
-            RequestToken[1] = match.Groups["token_secret"].Value;
-            requestTokenKey = RequestToken[0];
-            requestTokenSecret = RequestToken[1];
-
-            return callResult.StatusCode;
-        }
-        /// <summary>
-        /// Uses the default system web browser to request the user to authorize the stored request token.
-        /// </summary>
-        /// <remarks>The user must be logged into Urban Rivals before calling this.</remarks>
-        /// <exception cref="InvalidOperationException">There is not a request token to authorize</exception>
-        public void AuthorizeRequestToken()
-        {
-            if (String.IsNullOrWhiteSpace(RequestToken[0]) || String.IsNullOrWhiteSpace(RequestToken[0]))
-                throw new InvalidOperationException("There is not a request token to authorize");
-
-            AuthorizeRequestToken(RequestToken[0], RequestToken[1]);
-        }
-        /// <summary>
-        /// Uses the default system web browser to request the user to authorize the request token.
-        /// </summary>
-        /// <param name="requestTokenKey">Request token public part.</param>
-        /// <param name="requestTokenSecret">Request token secret part.</param>
-        /// <remarks>The user must be logged into Urban Rivals before calling this.</remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="requestTokenKey"/> or <paramref name="requestTokenSecret"/> are null, empty or whitespace</exception>
-        public void AuthorizeRequestToken(string requestTokenKey, string requestTokenSecret)
-        {
-            if (String.IsNullOrWhiteSpace(requestTokenKey))
-                throw new ArgumentNullException("requestTokenKey");
-            if (String.IsNullOrWhiteSpace(requestTokenSecret))
-                throw new ArgumentNullException("requestTokenSecret");
-
-            string URL = GetAuthorizeRequestTokenURL(requestTokenKey, requestTokenSecret);
-
-            System.Diagnostics.Process.Start(URL);
-        }
-        /// <summary>
-        /// Creates a valid URL to request the user to authorize the stored request token.
-        /// </summary>
-        /// <remarks>The user must be logged into Urban Rivals before using the URL.</remarks>
-        /// <exception cref="InvalidOperationException">There is not a request token to authorize</exception>
-        public string GetAuthorizeRequestTokenURL()
-        {
-            if (String.IsNullOrWhiteSpace(RequestToken[0]) || String.IsNullOrWhiteSpace(RequestToken[0]))
-                throw new InvalidOperationException("There is not a request token to authorize");
-
-            return GetAuthorizeRequestTokenURL(RequestToken[0], RequestToken[1]);
-        }
-        /// <summary>
-        /// Creates a valid URL to request the user to authorize the request token.
-        /// </summary>
-        /// <param name="requestTokenKey">Request token public part.</param>
-        /// <param name="requestTokenSecret">Request token secret part.</param>
-        /// <remarks>The user must be logged into Urban Rivals before using the URL.</remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="requestTokenKey"/> or <paramref name="requestTokenSecret"/> are null, empty or whitespace</exception>
-        public string GetAuthorizeRequestTokenURL(string requestTokenKey, string requestTokenSecret)
-        {
-            if (String.IsNullOrWhiteSpace(requestTokenKey))
-                throw new ArgumentNullException("requestTokenKey");
-            if (String.IsNullOrWhiteSpace(requestTokenSecret))
-                throw new ArgumentNullException("requestTokenSecret");
-
-            string timestamp = OAuthBase.GenerateTimeStamp();
-            string nonce = OAuthBase.GenerateNonce();
-            string normalizedUrl, normalizedRequestParameters;
-            string signature = OAuthBase.GenerateSignature(
-                new Uri(ApiURLs.AuthorizeToken),
-                ConsumerToken[0], ConsumerToken[1], requestTokenKey, requestTokenSecret,
-                "POST", timestamp, nonce, out normalizedUrl, out normalizedRequestParameters);
-
-            return normalizedUrl + "?" 
-                + normalizedRequestParameters
-                + "&oauth_signature=" + signature
-                + "&oauth_callback=" + ApiURLs.Callback;
-        }
-        /// <summary>
-        /// Uses the stored request token to get from the server an authorized token that will be stored internally.
-        /// </summary>
-        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
-        /// <exception cref="InvalidOperationException">There is not a request token to authorize</exception>
-        public HttpStatusCode GetAccessToken()
-        {
-            if (String.IsNullOrWhiteSpace(RequestToken[0]) || String.IsNullOrWhiteSpace(RequestToken[0]))
-                throw new InvalidOperationException("There is not a request token to authorize");
-
-            string dummy;
-            return GetAccessToken(RequestToken[0], RequestToken[1], out dummy, out dummy);
-        }
-        /// <summary>
-        /// Uses the request token to get from the server an authorized token that will be stored internally.
-        /// </summary>
-        /// <param name="requestTokenKey">Request token public part.</param>
-        /// <param name="requestTokenSecret">Request token secret part.</param>
-        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="requestTokenKey"/> or <paramref name="requestTokenSecret"/> are null, empty or whitespace</exception>
-        public HttpStatusCode GetAccessToken(string requestTokenKey, string requestTokenSecret) 
-        {
-            if (String.IsNullOrWhiteSpace(requestTokenKey))
-                throw new ArgumentNullException("requestTokenKey");
-            if (String.IsNullOrWhiteSpace(requestTokenSecret))
-                throw new ArgumentNullException("requestTokenSecret");
-
-            string dummy;
-            return GetAccessToken(requestTokenKey, requestTokenSecret, out dummy, out dummy);
-        }
-        /// <summary>
-        /// Uses the stored request token to get from the server an authorized token that will be stored internally.
-        /// </summary>
-        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
-        /// <exception cref="InvalidOperationException">There is not a request token to authorize</exception>
-        public HttpStatusCode GetAccessToken(out string accessTokenKey, out string accessTokenSecret) 
-        {
-            if (String.IsNullOrWhiteSpace(RequestToken[0]) || String.IsNullOrWhiteSpace(RequestToken[0]))
-                throw new InvalidOperationException("There is not a request token to authorize");
-
-            return GetAccessToken(RequestToken[0], RequestToken[1], out accessTokenKey, out accessTokenSecret);
-        }
-        /// <summary>
-        /// Uses the request token to get from the server an authorized token that will be stored internally.
-        /// </summary>
-        /// <param name="requestTokenKey">Request token public part.</param>
-        /// <param name="requestTokenSecret">Request token secret part.</param>
-        /// <param name="accessTokenKey">Access token public part.</param>
-        /// <param name="accessTokenSecret">Access token secret part.</param>
-        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="requestTokenKey"/> or <paramref name="requestTokenSecret"/> are null, empty or whitespace</exception>
-        public HttpStatusCode GetAccessToken(string requestTokenKey, string requestTokenSecret, out string accessTokenKey, out string accessTokenSecret)
-        {
-            if (String.IsNullOrWhiteSpace(requestTokenKey))
-                throw new ArgumentNullException("requestTokenKey");
-            if (String.IsNullOrWhiteSpace(requestTokenSecret))
-                throw new ArgumentNullException("requestTokenSecret");
-
-            accessTokenKey = "";
-            accessTokenSecret = "";
-
-            var callResult = ApiRunner.ExecuteOAuthApiCall(
-                QueryType.GetAccessToken, ApiURLs.AccessToken, new List<ApiParameter>(), RequestMethod.Post,
-                ConsumerToken[0], ConsumerToken[1], requestTokenKey, requestTokenSecret);
-
-            if (callResult.StatusCode != HttpStatusCode.OK)
-                return callResult.StatusCode;
-
-            var responseBytes = new byte[callResult.ResponseStream.Length];
-            callResult.ResponseStream.Read(responseBytes, 0, (int)callResult.ResponseStream.Length);
-            string responseString = System.Text.Encoding.UTF8.GetString(responseBytes);
-            var match = TokensFromServerResponseRegex.Match(responseString);
-            AccessToken[0] = match.Groups["token"].Value;
-            AccessToken[1] = match.Groups["token_secret"].Value;
-            accessTokenKey = AccessToken[0];
-            accessTokenSecret = AccessToken[1];
-
-            return callResult.StatusCode;
-        }
-        /// <summary>
-        /// Sends a Request (a single ApiCall) to the server using the stored consumer and access tokens. 
-        /// </summary>
-        /// <param name="call">API call to be sent.</param>
-        /// <param name="response">Server response.</param>
-        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="call"/> is <code>null</code></exception>
-        public HttpStatusCode SendRequest(ApiCall call, out string response)
-        {
-            if (call == null)
-                throw new ArgumentNullException("call");
-
-            var request = new ApiRequest();
-            request.EnqueueApiCall(call);
-            return SendRequest(request, out response);
-        }
-        /// <summary>
-        /// Sends a Request (one or more ApiCall's) to the server using the stored consumer and access tokens. 
-        /// </summary>
-        /// <param name="call">API call(s) to be sent.</param>
-        /// <param name="response">Server response.</param>
-        /// <returns>Success or failure reason of the call. If it is different than <see cref="HttpStatusCode.OK"/> it means that the call failed.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <code>null</code></exception>
-        /// <exception cref="ArgumentException"><paramref name="request"/> must contain at least one <see cref="ApiCall"/></exception>
         public HttpStatusCode SendRequest(ApiRequest request, out string response)
         {
+            HttpStatusCode httpStatusCode;
+            List<ApiParameter> parameters;
+            ApiParameter parameter;
+            string requestAsJson;
+            ExtApiCallResult callResponse;
+
             if (request == null)
-                throw new ArgumentNullException("request");
+                throw new ArgumentNullException(nameof(request));
 
             if (request.ApiCallsCount < 1)
-                throw new ArgumentException("The request must contains at least one ApiCall", "request");
+                throw new ArgumentException($"Request must contains at least one {nameof(ApiCall)}", nameof(request));
 
-            List<ApiParameter> parameters = new List<ApiParameter>();
-            parameters.Add(new ApiParameter()
-                {
-                    Name = "request",
-                    UnencodedValue = request.ToJson(),
-                });
+            if (this.accessTokenObtained == false)
+                throw new InvalidOperationException($"No access token is available. Use {nameof(GetAccessToken)} method or {nameof(CreateApiManagerReadyForRequests)} factory");
 
-            var callResult = ApiRunner.ExecuteOAuthApiCall(
-                QueryType.SendApiRequest, ApiURLs.Server, parameters, RequestMethod.Post, ConsumerToken[0], ConsumerToken[1], AccessToken[0], AccessToken[1]);
+            requestAsJson = request.ToJson();
+            parameter = new ApiParameter();
+            parameter.Name = "request";
+            parameter.UnencodedValue = requestAsJson;
 
-            if (callResult.StatusCode == System.Net.HttpStatusCode.OK)
+            parameters = new List<ApiParameter>();
+            parameters.Add(parameter);
+
+            callResponse = this.apiRunner.ExecuteOAuthApiCall(
+                QueryType.SendApiRequest, PRV_SERVER_URL, parameters, RequestMethod.Post, 
+                this.consumerToken[0], this.consumerToken[1], this.accessToken[0], this.accessToken[1]);
+
+            httpStatusCode = callResponse.StatusCode;
+            switch (httpStatusCode)
             {
-                var responseBytes = new byte[callResult.ResponseStream.Length];
-                callResult.ResponseStream.Read(responseBytes, 0, (int)callResult.ResponseStream.Length);
-                response = System.Text.Encoding.UTF8.GetString(responseBytes);
+                case HttpStatusCode.OK:
+                    response = prv_getStringFromResponse(callResponse);
+                    break;
+                default:
+                    response = "";
+                    break;
             }
-            else
-                response = "";
 
-            return callResult.StatusCode;
+            return httpStatusCode;
+        }
+
+        private static string[] prv_initTokenPair(string key, string secret)
+        {
+            string[] token;
+
+            token = new string[2];
+            token[0] = key;
+            token[1] = secret;
+
+            return token;
+        }
+        private static string prv_getStringFromResponse(ExtApiCallResult callResponse)
+        {
+            string responseString;
+            byte[] responseBytes;
+            int responseStreamLength;
+
+            responseStreamLength = (int)callResponse.ResponseStream.Length;
+            responseBytes = new byte[responseStreamLength];
+            callResponse.ResponseStream.Read(responseBytes, 0, responseStreamLength);
+            responseString = Encoding.UTF8.GetString(responseBytes);
+
+            return responseString;
         }
     }
 }

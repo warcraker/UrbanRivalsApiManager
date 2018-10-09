@@ -57,7 +57,6 @@
     <Compile Include="ApiCallList.cs" />
     <Compile Include="ApiManager.cs" />
     <Compile Include="ApiRequest.cs" />
-    <Compile Include="Base64Converter.cs" />
     <Compile Include="External\ExtApi\ExtApi.cs" />
     <Compile Include="External\OAuthBase\OAuthBase.cs" />
     <Compile Include="External\JsonDecoder\JsonDecoder.cs" />
