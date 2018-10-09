@@ -32,15 +32,30 @@ namespace UrbanRivalsApiManager.Test
         private void onConsumerTokenKeyTextChanged(object sender, TextChangedEventArgs e)
         {
             prv_clearFields();
-            prv_initializeManager();
+            this.manager = null;
         }
         private void onConsumerTokenSecretTextChanged(object sender, TextChangedEventArgs e)
         {
             prv_clearFields();
-            prv_initializeManager();
+            this.manager = null;
         }
-        private void onGetUrlButtonClicked(object sender, RoutedEventArgs e)
+        private void onGetAuthorizedUrlButtonClicked(object sender, RoutedEventArgs e)
         {
+            string consumerKey;
+            string consumerSecret;
+
+            this.isFullyAuthenticated = false;
+            consumerKey = this.ConsumerKey.Text;
+            consumerSecret = this.ConsumerSecret.Text;
+            if (String.IsNullOrWhiteSpace(consumerKey) == true || String.IsNullOrWhiteSpace(consumerSecret) == true)
+            {
+                this.manager = null;
+            }
+            else
+            {
+                this.manager = ApiManager.CreateApiManager(consumerKey, consumerSecret);
+            }
+
             if (this.manager == null)
             {
                 MessageBox.Show("Finish step 1 before this");
@@ -99,7 +114,7 @@ namespace UrbanRivalsApiManager.Test
         {
             if (this.isFullyAuthenticated == false)
             {
-                MessageBox.Show("Finish step 3 before this");
+                MessageBox.Show("Finish authentication process before this");
             }
             else
             {
@@ -160,7 +175,7 @@ namespace UrbanRivalsApiManager.Test
         {
             if (this.isFullyAuthenticated == false)
             {
-                MessageBox.Show("Finish step 3 before this");
+                MessageBox.Show("Finish authentication process before this");
             }
             else
             {
@@ -220,65 +235,89 @@ namespace UrbanRivalsApiManager.Test
         {
             if (isFullyAuthenticated == false)
             {
-                MessageBox.Show("Finish step 3 before this");
+                MessageBox.Show("Finish authentication process before this");
             }
             else
             {
                 string selectedLanguage;
-                List<string> languagesList;
-                ApiCall setLanguageCall;
-                ApiCall getTipsCall;
-                ApiRequest request;
-                HttpStatusCode statusCode;
-                string responseString;
 
-                selectedLanguage = prv_getSelectedLanguage();
-                languagesList = new List<string>();
-                languagesList.Add(selectedLanguage);
-
-                setLanguageCall = new ApiCallList.Players.SetLanguages(languagesList);
-                getTipsCall = new ApiCallList.General.GetTips();
-
-                request = new ApiRequest(setLanguageCall);
-                request.EnqueueApiCall(getTipsCall);
-
-                statusCode = manager.SendRequest(request, out responseString);
-                switch (statusCode)
+                if (this.en.IsChecked == true)
                 {
-                    case HttpStatusCode.OK:
+                    selectedLanguage = "en";
+                }
+                else if (this.es.IsChecked == true)
+                {
+                    selectedLanguage = "es";
+                }
+                else if (this.fr.IsChecked == true)
+                {
+                    selectedLanguage = "fr";
+                }
+                else
+                {
+                    selectedLanguage = null;
+                }
+
+                if (String.IsNullOrWhiteSpace(selectedLanguage) == true)
+                {
+                    MessageBox.Show("No language is selected");
+                }
+                else
+                {
+                    List<string> languagesList;
+                    ApiCall setLanguageCall;
+                    ApiCall getTipsCall;
+                    ApiRequest request;
+                    HttpStatusCode statusCode;
+                    string responseString;
+
+                    languagesList = new List<string>();
+                    languagesList.Add(selectedLanguage);
+
+                    setLanguageCall = new ApiCallList.Players.SetLanguages(languagesList);
+                    getTipsCall = new ApiCallList.General.GetTips();
+
+                    request = new ApiRequest(setLanguageCall);
+                    request.EnqueueApiCall(getTipsCall);
+
+                    statusCode = manager.SendRequest(request, out responseString);
+                    switch (statusCode)
                     {
-                        dynamic response;
-                        dynamic callPart;
-                        dynamic itemsPart;
-                        StringBuilder builder;
-
-                        response = JsonDecoder.Decode(responseString);
-                        callPart = response[getTipsCall.Call];
-                        itemsPart = callPart["items"];
-
-                        builder = new StringBuilder();
-                        foreach (dynamic item in itemsPart)
+                        case HttpStatusCode.OK:
                         {
-                            string tip;
-                            string line;
+                            dynamic response;
+                            dynamic callPart;
+                            dynamic itemsPart;
+                            StringBuilder builder;
 
-                            tip = item.ToString();
-                            line = $"- {tip}";
-                            builder.AppendLine(line);
+                            response = JsonDecoder.Decode(responseString);
+                            callPart = response[getTipsCall.Call];
+                            itemsPart = callPart["items"];
+
+                            builder = new StringBuilder();
+                            foreach (dynamic item in itemsPart)
+                            {
+                                string tip;
+                                string line;
+
+                                tip = item.ToString();
+                                line = $"- {tip}";
+                                builder.AppendLine(line);
+                            }
+
+                            MessageBox.Show(builder.ToString());
+                            break;
                         }
-
-                        MessageBox.Show(builder.ToString());
-                        break;
-                    }
-                    case HttpStatusCode.MethodNotAllowed:
-                    {
-                        MessageBox.Show("The consumer token provided doesn't have Public or User access");
-                        break;
-                    }
-                    default:
-                    {
-                        MessageBox.Show($"Something happened while asking the server for game tips. Error code: {statusCode}");
-                        break;
+                        case HttpStatusCode.MethodNotAllowed:
+                        {
+                            MessageBox.Show("The consumer token provided doesn't have Public or User access");
+                            break;
+                        }
+                        default:
+                        {
+                            MessageBox.Show($"Something happened while asking the server for game tips. Error code: {statusCode}");
+                            break;
+                        }
                     }
                 }
             }
@@ -294,7 +333,7 @@ namespace UrbanRivalsApiManager.Test
             }
             else if (isFullyAuthenticated == false)
             {
-                MessageBox.Show("Finish step 4 before this");
+                MessageBox.Show("Finish authentication process before this");
             }
             else
             {
@@ -379,6 +418,32 @@ namespace UrbanRivalsApiManager.Test
             url = e.Uri.ToString();
             prv_openUrlUsingDefaultBrowser(url);
         }
+        private void onRestorePreviousSesionButtonClicked(object sender, RoutedEventArgs e)
+        {
+            string consumerKey;
+            string consumerSecret;
+            string accessKey;
+            string accessSecret;
+
+            consumerKey = this.RestoredConsumerKey.Text;
+            consumerSecret = this.RestoredConsumerSecret.Text;
+            accessKey = this.RestoredAccessKey.Text;
+            accessSecret = this.RestoredAccessSecret.Text;
+
+            if (String.IsNullOrWhiteSpace(consumerKey) == true || String.IsNullOrWhiteSpace(consumerSecret) == true
+                || String.IsNullOrWhiteSpace(accessKey) == true || String.IsNullOrWhiteSpace(accessSecret) == true)
+            {
+                this.manager = null;
+                this.isFullyAuthenticated = false;
+                MessageBox.Show("Fill all the values for consumer and access tokens");
+            }
+            else
+            {
+                this.manager = ApiManager.CreateApiManagerReadyForRequests(consumerKey, consumerSecret, accessKey, accessSecret);
+                this.isFullyAuthenticated = true;
+                MessageBox.Show("Ready for API calls");
+            }
+        }
 
         private static string prv_getDynamicKeyAsString(dynamic item, string key)
         {
@@ -396,45 +461,6 @@ namespace UrbanRivalsApiManager.Test
             AccessKey.Text = "";
             AccessSecret.Text = "";
             SendMessage.Text = "";
-        }
-        private void prv_initializeManager()
-        {
-            string consumerKey;
-            string consumerSecret;
-
-            consumerKey = this.ConsumerKey.Text;
-            consumerSecret = this.ConsumerSecret.Text;
-            if (String.IsNullOrWhiteSpace(consumerKey) == false && String.IsNullOrWhiteSpace(consumerSecret) == false)
-            {
-                ApiManager manager;
-
-                manager = ApiManager.CreateApiManager(consumerKey, consumerSecret);
-                this.manager = manager;
-            }
-            this.isFullyAuthenticated = false;
-        }
-        private string prv_getSelectedLanguage()
-        {
-            string language;
-
-            if (this.en.IsChecked == true)
-            {
-                language = "en";
-            }
-            else if (this.es.IsChecked == true)
-            {
-                language = "es";
-            }
-            else if (this.fr.IsChecked == true)
-            {
-                language = "fr";
-            }
-            else
-            {
-                throw new Exception("No language is selected");
-            }
-
-            return language;
         }
         private static void prv_openUrlUsingDefaultBrowser(string url)
         {

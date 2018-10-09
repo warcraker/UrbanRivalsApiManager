@@ -18,75 +18,112 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Padding" Value="5" />
             <Setter Property="BorderBrush" Value="Black" />
-        </Style>    
+        </Style>
     </Window.Resources>
-    
+
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="400" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Column="0" Margin="0,0,5,0">
-            <TextBlock>
-                <Bold>1. Get Consumer Token.</Bold><LineBreak />
-                Go to <Hyperlink NavigateUri="http://www.urban-rivals.com/api/developer/" RequestNavigate="onHyperlinkClicked">www.urban-rivals.com/api/developer/</Hyperlink> and fill the form at the end. Fill the Accesses required with the desired values. You can ask for multiple Accesses. Check the documentation before. Store in a safe place the keys that they will give you, and write them here:
-            </TextBlock>
-            <DockPanel>
-                <TextBlock>Key:</TextBlock>
-                <TextBox x:Name="ConsumerKey" TextChanged="onConsumerTokenKeyTextChanged" IsReadOnly="False" />
-            </DockPanel>
-            <DockPanel>
-                <TextBlock>Secret:</TextBlock>
-                <TextBox x:Name="ConsumerSecret" TextChanged="onConsumerTokenSecretTextChanged" IsReadOnly="False" />
-            </DockPanel>
-            <DockPanel/>
-            <DockPanel/>
-            <TextBlock Style="{StaticResource UpperMargin}">
-                <Run FontWeight="Bold" Text="2. Authorize Request Token"/><LineBreak/>
-                <Run Text="Login into Urban Rivals as usual. Then go to the URL that you will get below."/><LineBreak/>
-                <InlineUIContainer>
-                    <Button Click="onGetUrlButtonClicked" Content="Get URL to Authorize Request Token"/>
-                </InlineUIContainer>
-            </TextBlock>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0">URL:</TextBlock>
-                <TextBox Grid.Column="1" x:Name="AuthorizeURL"  Margin="5,0"/>
-                <Button Grid.Column="2" Click="onCopyUrlButtonClicked">Copy URL</Button>
-                <TextBlock Grid.Column="3" Margin="5,2">or</TextBlock>
-                <Button Grid.Column="4" Click="onNavigateToUrlButtonClicked">Go to URL</Button>
-            </Grid>
-            <TextBlock TextDecorations="{x:Null}" Foreground="#FF182BA8" FontWeight="Bold" FontSize="11">
-                Hit [Authorize] on the page that will be shown.
-            </TextBlock>
-            <TextBlock Style="{StaticResource UpperMargin}">
-                <Run FontWeight="Bold" Text="3. Get Access Token"/><LineBreak/>
-                <Run Text="Once you have authorized the Request Token, hit here to get the Access Token."/><LineBreak/>
-                <InlineUIContainer>
-                    <Button Click="onGetAccessTokenButtonClicked" Content="Get Access Token"/>
-                </InlineUIContainer></TextBlock>
-            <DockPanel>
-                <TextBlock>Key:</TextBlock>
-                <TextBox x:Name="AccessKey" />
-            </DockPanel>
-            <DockPanel>
-                <TextBlock>Secret:</TextBlock>
-                <TextBox x:Name="AccessSecret" />
-            </DockPanel>
-        </StackPanel>
+
+
+        <TabControl Grid.Column="0" Margin="0,0,5,0">
+            <TabItem Header="Authenticate new session">
+                <StackPanel>
+                    <TextBlock>
+                        <Bold>1. Get Consumer Token</Bold><LineBreak />
+                        Go to <Hyperlink NavigateUri="http://www.urban-rivals.com/api/developer/" RequestNavigate="onHyperlinkClicked">www.urban-rivals.com/api/developer/</Hyperlink> and fill the form at the end. Fill the Accesses required with the desired values. You can ask for multiple Accesses. Check the documentation before. Store in a safe place the keys that they will give you, and write them here:
+                    </TextBlock>
+                    <DockPanel>
+                        <TextBlock>Key:</TextBlock>
+                        <TextBox x:Name="ConsumerKey" TextChanged="onConsumerTokenKeyTextChanged" IsReadOnly="False" />
+                    </DockPanel>
+                    <DockPanel>
+                        <TextBlock>Secret:</TextBlock>
+                        <TextBox x:Name="ConsumerSecret" TextChanged="onConsumerTokenSecretTextChanged" IsReadOnly="False" />
+                    </DockPanel>
+                    <TextBlock Style="{StaticResource UpperMargin}">
+                        <Run FontWeight="Bold" Text="2. Authorize Request Token"/><LineBreak/>
+                        <Run Text="Login into Urban Rivals as usual. Then go to the URL that you will get below."/><LineBreak/>
+                        <InlineUIContainer>
+                            <Button Click="onGetAuthorizedUrlButtonClicked" Content="Get URL to Authorize Request Token"/>
+                        </InlineUIContainer>
+                    </TextBlock>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0">URL:</TextBlock>
+                        <TextBox Grid.Column="1" x:Name="AuthorizeURL"  Margin="5,0"/>
+                        <Button Grid.Column="2" Click="onCopyUrlButtonClicked">Copy URL</Button>
+                        <TextBlock Grid.Column="3" Margin="5,2">or</TextBlock>
+                        <Button Grid.Column="4" Click="onNavigateToUrlButtonClicked">Go to URL</Button>
+                    </Grid>
+                    <TextBlock TextDecorations="{x:Null}" Foreground="#FF182BA8" FontWeight="Bold" FontSize="11">
+                        Hit [Authorize] on the page that will be shown.
+                    </TextBlock>
+                    <TextBlock Style="{StaticResource UpperMargin}">
+                        <Run FontWeight="Bold" Text="3. Get Access Token"/><LineBreak/>
+                        <Run Text="Once you have authorized the Request Token, hit here to get the Access Token."/><LineBreak/>
+                        <InlineUIContainer>
+                            <Button Click="onGetAccessTokenButtonClicked" Content="Get Access Token"/>
+                        </InlineUIContainer>
+                    </TextBlock>
+                    <DockPanel>
+                        <TextBlock>Key:</TextBlock>
+                        <TextBox x:Name="AccessKey" />
+                    </DockPanel>
+                    <DockPanel>
+                        <TextBlock>Secret:</TextBlock>
+                        <TextBox x:Name="AccessSecret" />
+                    </DockPanel>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Restore previous session">
+                <StackPanel>
+                    <TextBlock>
+                        <Bold>Use stored consumer and access token</Bold><LineBreak />
+                        You can reuse a previously authorised token to skip the whole process.
+                    </TextBlock>
+                    <TextBlock>
+                        <Bold>Consumer token</Bold>
+                    </TextBlock>
+                    <DockPanel>
+                        <TextBlock>Key:</TextBlock>
+                        <TextBox x:Name="RestoredConsumerKey" IsReadOnly="False" />
+                    </DockPanel>
+                    <DockPanel>
+                        <TextBlock>Secret:</TextBlock>
+                        <TextBox x:Name="RestoredConsumerSecret" IsReadOnly="False" />
+                    </DockPanel>
+                    <TextBlock>
+                        <Bold>Access token</Bold>
+                    </TextBlock>
+                    <DockPanel>
+                        <TextBlock>Key:</TextBlock>
+                        <TextBox x:Name="RestoredAccessKey" IsReadOnly="False" />
+                    </DockPanel>
+                    <DockPanel>
+                        <TextBlock>Secret:</TextBlock>
+                        <TextBox x:Name="RestoredAccessSecret" IsReadOnly="False" />
+                    </DockPanel>
+                    <Button Click="onRestorePreviousSesionButtonClicked">
+                        Restore session
+                    </Button>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
 
         <StackPanel Grid.Column="1">
             <TextBlock>
-                <Run FontWeight="Bold" Text="4. Have fun making API Calls with the Access Token"/><LineBreak/>
-                <Run Text="Here are some examples of things you can do with the API."/><LineBreak/>
-                <Underline><Run Text="You must use only allowed calls:"/></Underline>
+                <Run FontWeight="Bold" Text="Now you can use API calls"/><LineBreak/>
+                <Run Text="Here are some examples of things you can do with the API. "/><Underline><Run Text="You must use only allowed calls:"/></Underline>
             </TextBlock>
 
             <TextBlock Style="{StaticResource UpperMargin}">
@@ -136,6 +173,6 @@
                 </StackPanel>
             </Border>
         </StackPanel>
-        
+
     </Grid>
 </Window>
