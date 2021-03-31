@@ -14,10 +14,10 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-using UrbanRivalsApiManager;
+using Warcraker.UrbanRivals.ApiManager;
 using Procurios.Public;
 
-namespace UrbanRivalsApiManager.Test
+namespace Warcraker.UrbanRivals.ApiManager.Tester
 {
     public partial class MainWindow : Window
     {

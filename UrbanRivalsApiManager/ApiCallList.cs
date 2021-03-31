@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace UrbanRivalsApiManager
+namespace Warcraker.UrbanRivals.ApiManager
 {
     /// <summary>
     /// <para>List of all Urban Rivals API calls. Deprecated calls not included.</para>

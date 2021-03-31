@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using ExtApi.Engine;
 using OAuth;
 
-namespace UrbanRivalsApiManager
+namespace Warcraker.UrbanRivals.ApiManager
 {
     public class ApiManager
     {

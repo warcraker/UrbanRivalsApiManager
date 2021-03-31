@@ -5,7 +5,7 @@ using System.Text;
 
 using Newtonsoft.Json;
 
-namespace UrbanRivalsApiManager
+namespace Warcraker.UrbanRivals.ApiManager
 {
     /// <summary>
     /// Defines the essential elements for an ApiCall. To use a specific ApiCall use <seealso cref="ApiCallList"/>

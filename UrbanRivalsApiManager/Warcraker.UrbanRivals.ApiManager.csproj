@@ -7,8 +7,8 @@
     <ProjectGuid>{D754690A-47BE-4FC4-AF01-0931A986C1D4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>UrbanRivalsApiManager</RootNamespace>
-    <AssemblyName>UrbanRivalsApiManager</AssemblyName>
+    <RootNamespace>Warcraker.UrbanRivals.ApiManager</RootNamespace>
+    <AssemblyName>Warcraker.UrbanRivals.ApiManager</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
